@@ -1,0 +1,189 @@
+
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Phase 5 Completion Report — AgariyaCare AI</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, "Segoe UI", system-ui, sans-serif; font-size: 14px; line-height: 1.6; background: #ffffff; color: #1f2328; padding: 32px 16px; }
+  .wrap { max-width: 760px; margin: 0 auto; }
+  h1 { font-size: 22px; font-weight: 700; color: #1f2328; margin-bottom: 4px; }
+  .subtitle { font-size: 13px; color: #57606a; margin-bottom: 28px; }
+  h2 { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #57606a; margin: 24px 0 10px; }
+  .card { background: #f7f8fa; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px 20px; margin-bottom: 12px; }
+  .card h3 { font-size: 14px; font-weight: 600; color: #1f2328; margin-bottom: 8px; }
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; margin: 2px 3px 2px 0; }
+  .tag-green { background: #dcfce7; color: #15803d; }
+  .tag-blue { background: #dbeafe; color: #1d4ed8; }
+  .tag-amber { background: #fef3c7; color: #b45309; }
+  .tag-gray { background: #f3f4f6; color: #374151; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { text-align: left; padding: 8px 12px; background: #f7f8fa; border-bottom: 1px solid #e5e7eb; font-weight: 600; color: #57606a; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; }
+  td { padding: 8px 12px; border-bottom: 1px solid #e5e7eb; color: #1f2328; vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  .status-pass { color: #15803d; font-weight: 600; }
+  .status-warn { color: #b45309; font-weight: 600; }
+  code { font-family: "Cascadia Code", "Fira Code", "Consolas", monospace; background: #f3f4f6; padding: 1px 5px; border-radius: 3px; font-size: 12px; color: #374151; }
+  ul { padding-left: 18px; }
+  li { margin-bottom: 4px; color: #374151; }
+  .divider { border: none; border-top: 1px solid #e5e7eb; margin: 24px 0; }
+  footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid #e5e7eb; text-align: center; font-size: 12px; color: #57606a; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>AgariyaCare AI — Phase 5 Completion Report</h1>
+  <p class="subtitle">Finalization of Healthcare, Safety, SOS, AI Orchestrator, i18n and build fixes · Continuation from Phase 5 WIP checkpoint</p>
+
+  <hr class="divider" />
+
+  <h2>Summary</h2>
+  <div class="card">
+    <p style="color:#374151">Phase 5 was already substantially implemented at the WIP checkpoint. This session identified and resolved all remaining blockers: missing <code>lucide-react</code> dependency, broken <code>HealthcarePage.tsx</code> i18n integration, and incomplete Gujarati translations. All TypeScript and production builds now pass clean.</p>
+  </div>
+
+  <h2>Files Changed</h2>
+  <table>
+    <tr><th>File</th><th>Change</th></tr>
+    <tr><td><code>frontend/src/pages/HealthcarePage.tsx</code></td><td>Replaced broken <code>useTranslation</code>/<code>ti18n</code> wrapper with <code>useLanguage()</code> context; fixed all TypeScript errors; replaced romanized Gujarati symptom labels with Gujarati script; fixed all inline strings</td></tr>
+    <tr><td><code>frontend/src/i18n/translations.ts</code></td><td>Fixed <code>gu.nav</code> (all "ₓ" placeholders → proper Gujarati), <code>gu.dashboard</code>, <code>gu.healthcare</code> (all romanized → Gujarati script), <code>gu.safety</code> (all romanized → Gujarati script)</td></tr>
+    <tr><td><code>frontend/src/i18n/locales/gu.json</code></td><td>Fixed <code>healthcare5</code> and <code>safety5</code> namespaces — all romanized strings replaced with proper Gujarati script; <code>symptoms_list</code> now in Gujarati</td></tr>
+    <tr><td><code>frontend/package.json</code></td><td>Added <code>lucide-react</code> dependency (was missing; caused TS2307 type errors across all icon-using components)</td></tr>
+  </table>
+
+  <h2>Features Completed (WIP → Done)</h2>
+  <div class="card">
+    <h3>Healthcare</h3>
+    <ul>
+      <li>Worker submits healthcare request (symptoms, description, severity) → stored in PostgreSQL</li>
+      <li>Worker views own request history with status + coordinator notes</li>
+      <li>Worker views active health camps</li>
+      <li>Coordinator sees all requests, filtered by status/severity, sorted by urgency</li>
+      <li>Coordinator updates status, adds notes — worker receives notification on each change</li>
+      <li>Full status workflow: SUBMITTED → REVIEWING → REFERRED → SCHEDULED → RESOLVED → CLOSED</li>
+      <li>Notifications: worker on submission, coordinator on new requests, worker on status changes</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h3>Safety</h3>
+    <ul>
+      <li>Worker submits heat/humidity safety reading → auto-calculates heat index + safety level</li>
+      <li>Worker's current safety assessment displayed with recommendations</li>
+      <li>Worker reports safety incidents (type, description, location, severity)</li>
+      <li>Auto-alerts and coordinator notifications on HIGH_RISK/EMERGENCY readings</li>
+      <li>Coordinator manages all incidents with status workflow: REPORTED → ACKNOWLEDGED → IN_PROGRESS → RESOLVED → CLOSED</li>
+      <li>Active system-wide safety alerts visible to all workers</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h3>SOS / Emergency</h3>
+    <ul>
+      <li>Worker activates SOS via confirmation dialog (clearly in-app workflow, not external services)</li>
+      <li>Emergency event stored in <code>emergency_events</code> PostgreSQL table</li>
+      <li>All coordinators notified immediately on SOS activation</li>
+      <li>Post-SOS instructions displayed (call 108, move to shade, etc.) — explicitly notes 108 is the real emergency number</li>
+      <li>Coordinator views all active SOS events, can acknowledge or resolve</li>
+      <li>Worker receives notification on SOS status changes</li>
+      <li>No false claim that emergency services are contacted — explicitly directs to call 108</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h3>AI Orchestrator</h3>
+    <ul>
+      <li>Intent classification across marketplace, healthcare, safety, welfare, community</li>
+      <li>MarketplaceAgent: real inventory, listings, offers, transactions, buyer demand context from DB</li>
+      <li>HealthcareAgent: real camp data + worker's own request history injected into prompt</li>
+      <li>SafetyAgent: heat index calculation, context-aware safety guidance</li>
+      <li>IBM Granite provider preserved; development fallback clearly identified</li>
+      <li>Conversations persisted in PostgreSQL via DevChatRepository / PgChatRepository</li>
+    </ul>
+  </div>
+
+  <h2>Database Migrations</h2>
+  <table>
+    <tr><th>Migration</th><th>Tables</th><th>Status</th></tr>
+    <tr><td><code>010_phase5_healthcare_safety.ts</code></td><td><code>healthcare_requests</code>, <code>healthcare_notes</code>, <code>healthcare_camps</code>, <code>safety_reports</code>, <code>safety_assessments</code>, <code>safety_alerts</code>, <code>emergency_events</code></td><td><span class="status-pass">✓ Complete</span></td></tr>
+  </table>
+  <p style="font-size:12px;color:#57606a;margin-top:6px">Migrations run automatically on server startup via <code>runAllMigrations()</code>. All use <code>IF NOT EXISTS</code> — safe to re-run.</p>
+
+  <h2>API Endpoints</h2>
+  <table>
+    <tr><th>Method</th><th>Path</th><th>Access</th></tr>
+    <tr><td>GET</td><td><code>/api/healthcare/requests</code></td><td>Auth — worker sees own, coordinator sees all</td></tr>
+    <tr><td>POST</td><td><code>/api/healthcare/requests</code></td><td>Auth — any role</td></tr>
+    <tr><td>GET</td><td><code>/api/healthcare/requests/:id</code></td><td>Auth — RBAC enforced</td></tr>
+    <tr><td>GET</td><td><code>/api/healthcare/coordinator/requests</code></td><td>COORDINATOR / ADMIN</td></tr>
+    <tr><td>PUT</td><td><code>/api/healthcare/coordinator/requests/:id</code></td><td>COORDINATOR / ADMIN</td></tr>
+    <tr><td>POST</td><td><code>/api/healthcare/coordinator/requests/:id/notes</code></td><td>COORDINATOR / ADMIN</td></tr>
+    <tr><td>GET/POST/PUT</td><td><code>/api/healthcare/camps</code></td><td>Public GET; Auth POST/PUT (COORD/ADMIN)</td></tr>
+    <tr><td>GET</td><td><code>/api/safety/assessment</code></td><td>Auth</td></tr>
+    <tr><td>GET/POST</td><td><code>/api/safety/readings</code></td><td>Auth</td></tr>
+    <tr><td>GET/POST</td><td><code>/api/safety/incidents</code></td><td>Auth</td></tr>
+    <tr><td>GET/POST/PUT</td><td><code>/api/safety/coordinator/incidents[/:id]</code></td><td>COORDINATOR / ADMIN</td></tr>
+    <tr><td>GET</td><td><code>/api/safety/alerts</code></td><td>Public</td></tr>
+    <tr><td>POST</td><td><code>/api/safety/coordinator/alerts</code></td><td>COORDINATOR / ADMIN</td></tr>
+    <tr><td>POST</td><td><code>/api/safety/sos</code></td><td>Auth</td></tr>
+    <tr><td>GET</td><td><code>/api/safety/sos</code></td><td>Auth (worker: own; coord: all)</td></tr>
+    <tr><td>GET/PUT</td><td><code>/api/safety/coordinator/sos[/:id]</code></td><td>COORDINATOR / ADMIN</td></tr>
+    <tr><td>POST</td><td><code>/api/ai/chat</code></td><td>Auth — IBM Granite / dev fallback</td></tr>
+  </table>
+
+  <h2>AI / IBM Granite Status</h2>
+  <div class="card">
+    <p><span class="tag tag-blue">IBM Granite</span> <span class="tag tag-green">Preserved</span></p>
+    <ul style="margin-top:8px">
+      <li>Provider: <code>backend/src/providers/ai/granite.provider.ts</code> — calls IBM watsonx API</li>
+      <li>Development fallback: <code>backend/src/providers/ai/development.provider.ts</code> — clearly labelled as dev mode</li>
+      <li>AI route checks <code>IBM_WATSONX_API_KEY</code> and <code>IBM_WATSONX_PROJECT_ID</code> env vars to select provider</li>
+      <li>Marketplace agent: injects real inventory, listings, offers, transactions, buyer demand</li>
+      <li>Healthcare agent: injects real camp data and worker's own request history</li>
+      <li>Safety agent: computes heat index from real readings; gives context-aware guidance</li>
+      <li>No fake/hardcoded AI responses in production path</li>
+    </ul>
+  </div>
+
+  <h2>i18n Status</h2>
+  <table>
+    <tr><th>Namespace</th><th>English</th><th>Gujarati</th></tr>
+    <tr><td><code>healthcare5</code> (gu.json)</td><td><span class="status-pass">✓ Complete</span></td><td><span class="status-pass">✓ Proper Gujarati script</span></td></tr>
+    <tr><td><code>safety5</code> (gu.json)</td><td><span class="status-pass">✓ Complete</span></td><td><span class="status-pass">✓ Proper Gujarati script</span></td></tr>
+    <tr><td><code>healthcare</code> (translations.ts)</td><td><span class="status-pass">✓ Complete</span></td><td><span class="status-pass">✓ Proper Gujarati script</span></td></tr>
+    <tr><td><code>safety</code> (translations.ts)</td><td><span class="status-pass">✓ Complete</span></td><td><span class="status-pass">✓ Proper Gujarati script</span></td></tr>
+    <tr><td><code>nav</code> (translations.ts)</td><td><span class="status-pass">✓ Complete</span></td><td><span class="status-pass">✓ Proper Gujarati</span></td></tr>
+  </table>
+
+  <h2>Security</h2>
+  <ul>
+    <li>JWT authentication on all new endpoints via <code>requireAuth</code> middleware</li>
+    <li>RBAC: <code>requireRole('COORDINATOR', 'ADMIN')</code> on all coordinator/admin routes</li>
+    <li>Workers cannot see other workers' healthcare requests (server-side check)</li>
+    <li>HttpOnly cookies, bcrypt passwords, rate limiting — all untouched from Phase 1–4</li>
+    <li>No fake users, no hardcoded data, no mock records</li>
+  </ul>
+
+  <h2>Build Results</h2>
+  <table>
+    <tr><th>Check</th><th>Result</th></tr>
+    <tr><td>Backend <code>npx tsc --noEmit</code></td><td><span class="status-pass">✓ 0 errors</span></td></tr>
+    <tr><td>Backend <code>npm run build</code></td><td><span class="status-pass">✓ Clean</span></td></tr>
+    <tr><td>Frontend <code>npx tsc --noEmit</code></td><td><span class="status-pass">✓ 0 errors</span></td></tr>
+    <tr><td>Frontend <code>npm run build</code></td><td><span class="status-pass">✓ 2014 modules, 4.02s</span></td></tr>
+    <tr><td>Chunk size warning (570KB)</td><td><span class="status-warn">⚠ Non-blocking — expected for full SPA</span></td></tr>
+  </table>
+
+  <h2>Remaining Issues</h2>
+  <div class="card">
+    <ul>
+      <li><strong>Chunk size:</strong> The JS bundle is 570KB (warn threshold 500KB). This is a performance note, not a build failure. Split-code optimization (dynamic imports) can be done post-launch.</li>
+      <li><strong>Gujarati dashboard abbreviations:</strong> Some dashboard Gujarati strings use abbreviated forms (e.g., <code>ઉ. મીઠ</code>) due to layout constraints in the original translation structure — acceptable for MVP, full strings can be added per UI slot.</li>
+      <li><strong>Database connectivity:</strong> Without <code>DATABASE_URL</code> set, all Phase 5 repos fall back to in-memory dev repositories — this is by design for local development.</li>
+      <li><strong>IBM Granite credentials:</strong> Without <code>IBM_WATSONX_API_KEY</code> + <code>IBM_WATSONX_PROJECT_ID</code>, AI uses the development fallback provider — clearly labelled in the UI.</li>
+    </ul>
+  </div>
+
+  <footer>Made with IBM Bob</footer>
+</div>
+</body>
+</html>

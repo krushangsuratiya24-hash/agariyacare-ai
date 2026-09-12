@@ -3,7 +3,7 @@ import {
   Heart, Plus, MapPin, Calendar, Phone, AlertCircle,
   MessageSquare,
 } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
+import { useLanguage } from '../contexts/LanguageContext';
 import { useAuthStore } from '../context/authStore';
 import { healthcareApi } from '../services/api';
 import { HealthcareRequest, HealthcareCamp } from '../types';
@@ -18,9 +18,9 @@ const SYMPTOMS_EN = [
 ];
 
 const SYMPTOMS_GU = [
-  'ₓ', 'Mathanu dard', 'Ubkli / Oi', 'Kamzori / Thakaan', 'Aaankh bethe',
-  'Tvacha kharash', 'Tav', 'Pani ghatu', 'Chhati ma dard',
-  'Shwas levamai takleef', 'Saadhama dard', 'Baju',
+  'ચક્કર', 'માથાનો દુખાવો', 'ઊબકળ / ઊલ્ટી', 'નબળાઈ / થાક', 'આંખ ખૂંચે',
+  'ત્વચા પર ખંજવાળ', 'તાવ', 'પાણી ઓછું', 'છાતીમાં દર્દ',
+  'શ્વાસ લેવામાં તકલીફ', 'સાંધા/સ્નાયુ દર્દ', 'બીજું',
 ];
 
 // ─── Status config ────────────────────────────────────────────────────────────
@@ -43,14 +43,13 @@ const SEV_STYLES: Record<string, string> = {
 
 const STATUSES = ['SUBMITTED', 'REVIEWING', 'REFERRED', 'SCHEDULED', 'RESOLVED', 'CLOSED'];
 
-// ─── Worker HealthcarePage ────────────────────────────────────────────────────
+// ─── HealthcarePage ───────────────────────────────────────────────────────────
 
 export default function HealthcarePage() {
   const { user: currentUser } = useAuthStore();
-  const { t: ti18n, i18n } = useTranslation();
-  const gu = i18n.language === 'gu';
-  // Use healthcare5 namespace from i18n, fall back to sensible strings
-  const t = { healthcare: (key: keyof any) => ti18n(`healthcare5.${String(key)}`) };
+  const { t, language } = useLanguage();
+  const gu = language === 'gu';
+  const th = t.healthcare;
 
   const isCoordinator = currentUser?.role === 'COORDINATOR' || currentUser?.role === 'ADMIN';
 
@@ -89,7 +88,7 @@ export default function HealthcarePage() {
       setRequests(reqRes.data ?? []);
       setCamps(campRes.data ?? []);
     } catch {
-      setError(gu ? 'Data load thayu nahi.' : 'Unable to load healthcare data.');
+      setError(gu ? 'ડેટા લોડ થઈ શક્યો નહીં.' : 'Unable to load healthcare data.');
     } finally {
       setLoading(false);
     }
@@ -101,11 +100,11 @@ export default function HealthcarePage() {
     e.preventDefault();
     if (!currentUser) return;
     if (selectedSymptoms.length === 0) {
-      setError(gu ? 'Ek pan lakshaanu pasand karo.' : 'Please select at least one symptom.');
+      setError(gu ? 'ઓછામાં ઓછું એક લક્ષણ પસંદ કરો.' : 'Please select at least one symptom.');
       return;
     }
     if (!description.trim()) {
-      setError(gu ? 'Vivaran joiye.' : 'Please provide a description.');
+      setError(gu ? 'વિવરણ જરૂરી છે.' : 'Please provide a description.');
       return;
     }
     setSubmitting(true);
@@ -113,7 +112,7 @@ export default function HealthcarePage() {
     try {
       await healthcareApi.createRequest({ symptoms: selectedSymptoms, description, severity });
       setSuccess(gu
-        ? 'Vinanti moklai. Coordinator tame ne contact karshe.'
+        ? 'વિનંતી મોકલાઈ. Coordinator ટૂંક સમયમાં સંપર્ક કરશે.'
         : 'Healthcare request submitted. A coordinator will contact you.');
       setSelectedSymptoms([]);
       setDescription('');
@@ -121,7 +120,7 @@ export default function HealthcarePage() {
       setTab('requests');
       loadData();
     } catch (e: any) {
-      setError(e?.response?.data?.error || e.message || (gu ? 'Moklayi nahi.' : 'Failed to submit.'));
+      setError(e?.response?.data?.error || e.message || (gu ? 'મોકલી શકાઈ નહીં.' : 'Failed to submit.'));
     } finally {
       setSubmitting(false);
     }
@@ -144,11 +143,11 @@ export default function HealthcarePage() {
         await healthcareApi.coordinator.addNote(selectedRequest.id, coordNote.trim());
         setCoordNote('');
       }
-      setSuccess(gu ? 'Vinanti update thayi.' : 'Request updated.');
+      setSuccess(gu ? 'વિનંતી અપડેટ થઈ.' : 'Request updated.');
       setSelectedRequest(null);
       loadData();
     } catch (e: any) {
-      setError(e?.response?.data?.error || (gu ? 'Update thayu nahi.' : 'Update failed.'));
+      setError(e?.response?.data?.error || (gu ? 'અપડેટ થઈ શક્યું નહીં.' : 'Update failed.'));
     } finally {
       setUpdatingRequest(false);
     }
@@ -165,23 +164,23 @@ export default function HealthcarePage() {
       <div>
         <PageHeader
           title={gu ? 'આરોગ્ય — Coordinator' : 'Healthcare — Coordinator View'}
-          subtitle={gu ? 'Worker ni vinantio manage karo' : 'Manage worker healthcare requests'}
+          subtitle={gu ? 'Worker ની વિનંતીઓ manage કરો' : 'Manage worker healthcare requests'}
         />
 
         {/* Filters */}
         <div className="flex flex-wrap gap-3 mb-5">
           <select value={filterStatus} onChange={e => { setFilterStatus(e.target.value); }}
             className="input-field text-sm py-1.5 w-40">
-            <option value="">{gu ? 'Badha status' : 'All Status'}</option>
+            <option value="">{gu ? 'બધા status' : 'All Status'}</option>
             {STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
           </select>
           <select value={filterSeverity} onChange={e => { setFilterSeverity(e.target.value); }}
             className="input-field text-sm py-1.5 w-40">
-            <option value="">{gu ? 'Badhi takid' : 'All Urgency'}</option>
+            <option value="">{gu ? 'બધી તાકીદ' : 'All Urgency'}</option>
             {['EMERGENCY','HIGH','MEDIUM','LOW'].map(s => <option key={s} value={s}>{s}</option>)}
           </select>
           <button onClick={loadData} className="btn-secondary text-sm py-1.5">
-            {gu ? 'Filter karo' : 'Apply Filter'}
+            {gu ? 'Filter કરો' : 'Apply Filter'}
           </button>
         </div>
 
@@ -196,7 +195,7 @@ export default function HealthcarePage() {
             <div className="lg:col-span-2 space-y-3">
               {requests.length === 0 ? (
                 <div className="card text-center py-10 text-gray-400">
-                  {gu ? 'Koi vinanti nathi.' : 'No requests found.'}
+                  {gu ? 'કોઈ વિનંતી નથી.' : 'No requests found.'}
                 </div>
               ) : requests.map(req => (
                 <button
@@ -251,7 +250,7 @@ export default function HealthcarePage() {
                       </span>
                     </div>
                     <div className="text-sm text-gray-700">
-                      <span className="font-medium">{gu ? 'Lakshano:' : 'Symptoms:'}</span>{' '}
+                      <span className="font-medium">{gu ? 'લક્ષણો:' : 'Symptoms:'}</span>{' '}
                       {Array.isArray(selectedRequest.symptoms) ? selectedRequest.symptoms.join(', ') : selectedRequest.symptoms}
                     </div>
                     <p className="text-sm text-gray-600">{selectedRequest.description}</p>
@@ -264,7 +263,7 @@ export default function HealthcarePage() {
                     )}
                     {selectedRequest.coordinatorNotes && (
                       <div className="bg-gray-50 rounded-lg p-2 text-xs text-gray-600">
-                        <span className="font-medium">{gu ? 'Nondh:' : 'Notes:'}</span> {selectedRequest.coordinatorNotes}
+                        <span className="font-medium">{gu ? 'નોંધ:' : 'Notes:'}</span> {selectedRequest.coordinatorNotes}
                       </div>
                     )}
                   </div>
@@ -272,18 +271,18 @@ export default function HealthcarePage() {
                   {/* Status update */}
                   <div className="space-y-3 border-t border-gray-100 pt-3">
                     <div>
-                      <label className="text-xs font-medium text-gray-600 mb-1 block">{gu ? 'Status badlao' : 'Update Status'}</label>
+                      <label className="text-xs font-medium text-gray-600 mb-1 block">{gu ? 'Status બદલો' : 'Update Status'}</label>
                       <select value={coordStatus} onChange={e => setCoordStatus(e.target.value)} className="input-field text-sm py-1.5">
                         {STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
                       </select>
                     </div>
                     <div>
-                      <label className="text-xs font-medium text-gray-600 mb-1 block">{gu ? 'Nondh' : 'Add Note'}</label>
+                      <label className="text-xs font-medium text-gray-600 mb-1 block">{gu ? 'નોંધ' : 'Add Note'}</label>
                       <textarea
                         value={coordNote}
                         onChange={e => setCoordNote(e.target.value)}
                         className="input-field h-16 resize-none text-sm"
-                        placeholder={gu ? 'Nondh lekho…' : 'Add coordinator note…'}
+                        placeholder={gu ? 'નોંધ લખો…' : 'Add coordinator note…'}
                       />
                     </div>
                     <button
@@ -291,19 +290,19 @@ export default function HealthcarePage() {
                       disabled={updatingRequest}
                       className="btn-primary w-full text-sm"
                     >
-                      {updatingRequest ? (gu ? 'Update thayi rahyu…' : 'Updating…') : (gu ? 'Update karo' : 'Save Update')}
+                      {updatingRequest ? (gu ? 'Update થઈ રહ્યું…' : 'Updating…') : (gu ? 'Update કરો' : 'Save Update')}
                     </button>
                     <button
                       onClick={() => setSelectedRequest(null)}
                       className="btn-secondary w-full text-sm"
                     >
-                      {gu ? 'Bandu karo' : 'Close'}
+                      {gu ? 'બંધ કરો' : 'Close'}
                     </button>
                   </div>
                 </div>
               ) : (
                 <div className="card text-center py-10 text-gray-400 text-sm">
-                  {gu ? 'Vinanti pasand karo' : 'Select a request to review'}
+                  {gu ? 'વિનંતી પસંદ કરો' : 'Select a request to review'}
                 </div>
               )}
             </div>
@@ -318,11 +317,11 @@ export default function HealthcarePage() {
   return (
     <div>
       <PageHeader
-        title={t.healthcare.title}
-        subtitle={t.healthcare.subtitle}
+        title={th.title}
+        subtitle={th.subtitle}
         actions={
           <button onClick={() => setTab('new')} className="btn-primary flex items-center gap-2">
-            <Plus size={14} /> {t.healthcare.requestHelp}
+            <Plus size={14} /> {th.requestHelp}
           </button>
         }
       />
@@ -330,18 +329,18 @@ export default function HealthcarePage() {
       {/* Emergency banner */}
       <div className="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-2.5 text-sm mb-4">
         <AlertCircle size={14} className="flex-shrink-0" />
-        <span>{gu ? 'Emergency? 108 par turant phone karo.' : 'Medical emergency? Call 108 immediately.'}</span>
+        <span>{gu ? 'Emergency? 108 પર તુરંત phone કરો.' : 'Medical emergency? Call 108 immediately.'}</span>
         <a href="tel:108" className="ml-auto font-bold underline hover:no-underline">108</a>
       </div>
 
-      <Disclaimer text={t.healthcare.disclaimer} />
+      <Disclaimer text={th.disclaimer} />
 
       {/* Tabs */}
       <div className="flex gap-1 mt-4 mb-6 bg-gray-100 rounded-lg p-1 w-fit">
         {[
-          { key: 'requests', label: t.healthcare.myRequests },
-          { key: 'camps', label: t.healthcare.myCamps },
-          { key: 'new', label: t.healthcare.newRequest },
+          { key: 'requests', label: th.myRequests },
+          { key: 'camps', label: th.myCamps },
+          { key: 'new', label: th.newRequest },
         ].map(({ key, label }) => (
           <button key={key} onClick={() => setTab(key as any)}
             className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${
@@ -360,10 +359,10 @@ export default function HealthcarePage() {
         <div className="space-y-3">
           {requests.length === 0 ? (
             <div className="card text-center py-10">
-              <p className="text-gray-400 mb-3">{t.healthcare.noRequests}</p>
-              <p className="text-gray-400 text-sm mb-4">{t.healthcare.noRequestsHint}</p>
+              <p className="text-gray-400 mb-3">{th.noRequests}</p>
+              <p className="text-gray-400 text-sm mb-4">{th.noRequestsHint}</p>
               <button onClick={() => setTab('new')} className="btn-primary text-sm">
-                {t.healthcare.requestHelp}
+                {th.requestHelp}
               </button>
             </div>
           ) : requests.map(req => (
@@ -406,7 +405,7 @@ export default function HealthcarePage() {
       ) : tab === 'camps' ? (
         <div className="space-y-4">
           {camps.filter(c => c.isActive).length === 0 ? (
-            <div className="card text-center py-10 text-gray-400">{t.healthcare.noCamps}</div>
+            <div className="card text-center py-10 text-gray-400">{th.noCamps}</div>
           ) : camps.filter(c => c.isActive).map(camp => (
             <div key={camp.id} className="card">
               <div className="flex items-start justify-between gap-4">
@@ -428,7 +427,7 @@ export default function HealthcarePage() {
                     <div className="text-xs text-gray-400">{camp.registered}/{camp.capacity} {gu ? 'seats' : 'registered'}</div>
                   )}
                   <span className="badge bg-green-50 text-green-700 border border-green-100 text-xs mt-1 inline-block">
-                    {gu ? 'Sakriya' : 'Active'}
+                    {gu ? 'સક્રિય' : 'Active'}
                   </span>
                 </div>
               </div>
@@ -438,10 +437,10 @@ export default function HealthcarePage() {
       ) : (
         // New request form
         <div className="card max-w-2xl">
-          <h3 className="font-semibold text-gray-900 mb-4">{t.healthcare.requestHelp}</h3>
+          <h3 className="font-semibold text-gray-900 mb-4">{th.requestHelp}</h3>
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">{t.healthcare.symptoms}</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">{th.symptoms}</label>
               <div className="flex flex-wrap gap-2">
                 {symptoms.map((s, i) => {
                   const key = SYMPTOMS_EN[i] ?? s;
@@ -458,30 +457,30 @@ export default function HealthcarePage() {
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">{t.healthcare.description}</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{th.description}</label>
               <textarea
                 value={description}
                 onChange={e => setDescription(e.target.value)}
                 className="input-field h-24 resize-none"
-                placeholder={t.healthcare.descriptionPlaceholder}
+                placeholder={th.descriptionPlaceholder}
                 required
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">{t.healthcare.severity}</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{th.severity}</label>
               <select value={severity} onChange={e => setSeverity(e.target.value)} className="input-field">
-                <option value="LOW">{t.healthcare.severityLow}</option>
-                <option value="MEDIUM">{t.healthcare.severityMedium}</option>
-                <option value="HIGH">{t.healthcare.severityHigh}</option>
-                <option value="EMERGENCY">{t.healthcare.severityEmergency}</option>
+                <option value="LOW">{th.severityLow}</option>
+                <option value="MEDIUM">{th.severityMedium}</option>
+                <option value="HIGH">{th.severityHigh}</option>
+                <option value="EMERGENCY">{th.severityEmergency}</option>
               </select>
             </div>
             <div className="flex gap-3">
               <button type="submit" disabled={submitting} className="btn-primary">
-                {submitting ? t.healthcare.submitting : t.healthcare.submitRequest}
+                {submitting ? th.submitting : th.submitRequest}
               </button>
               <button type="button" onClick={() => setTab('requests')} className="btn-secondary">
-                {gu ? 'Bandu karo' : 'Cancel'}
+                {gu ? 'રદ કરો' : 'Cancel'}
               </button>
             </div>
           </form>
