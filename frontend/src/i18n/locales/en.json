@@ -106,7 +106,12 @@
     "browseMarket": "Browse the market →",
     "viewSaltMarket": "View Salt Market",
     "viewMyListings": "View My Listings",
-    "viewBuyerRequests": "View Buyer Requests"
+    "viewBuyerRequests": "View Buyer Requests",
+    "aiDescription": "Your AI assistant powered by IBM Granite. Ask about salt, offers, market prices, and welfare.",
+    "aiSuggest1": "How much salt do I have available?",
+    "aiSuggest2": "Show my pending offers",
+    "aiSuggest3": "Who is looking to buy salt?",
+    "openAI": "Open AI Assistant →"
   },
   "profile": {
     "title": "My Profile",
@@ -518,5 +523,28 @@
     "serverError": "Server error. Please try again.",
     "networkError": "Network error. Check your connection.",
     "sessionExpired": "Your session has expired. Please log in again."
+  },
+  "ai": {
+    "title": "AgariyaCare AI",
+    "poweredBy": "Powered by IBM Granite",
+    "history": "History",
+    "newChat": "New Chat",
+    "recentConversations": "Recent Conversations",
+    "noConversationsYet": "No conversations yet.",
+    "suggestedQuestions": "Suggested Questions",
+    "welcomeGuest": "Powered by IBM Granite AI. Ask me about salt, offers, market prices, healthcare, safety, and welfare.",
+    "thinking": "AgariyaCare AI is thinking…",
+    "inputPlaceholder": "Ask anything about your salt, offers, market, welfare…",
+    "disclaimer": "Powered by IBM Granite AI · Responses are informational only.",
+    "errorUnavailable": "AgariyaCare AI is temporarily unavailable. Please check your AI configuration or try again.",
+    "errorTooMany": "Too many AI requests. Please wait a moment and try again.",
+    "errorGeneral": "Something went wrong. Please try again.",
+    "usedInventory": "Used your inventory",
+    "usedOffers": "Checked your offers",
+    "usedMarket": "Checked marketplace data",
+    "devModeNotice": "Development mode: Set IBM_WATSONX_API_KEY and IBM_WATSONX_PROJECT_ID in .env for real IBM Granite AI.",
+    "deleteConversation": "Delete conversation",
+    "closeSidebar": "Close sidebar",
+    "sendMessage": "Send message"
   }
 }

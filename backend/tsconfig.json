@@ -20,26 +20,25 @@
     "src/middleware/auth.ts",
     "src/middleware/errorHandler.ts",
     "src/middleware/upload.ts",
+    "src/middleware/auth.middleware.ts",
     "src/routes/auth.ts",
     "src/routes/users.ts",
     "src/routes/admin.ts",
     "src/routes/marketplace.ts",
+    "src/routes/offers.ts",
+    "src/routes/ai.routes.ts",
     "src/controllers/**/*",
     "src/utils/**/*",
-    "src/types/index.ts"
+    "src/types/**/*",
+    "src/agents/**/*",
+    "src/providers/**/*",
+    "src/repositories/**/*",
+    "src/data/**/*",
+    "src/config/**/*"
   ],
   "exclude": [
     "node_modules",
     "dist",
-    "src/agents",
-    "src/config",
-    "src/data",
-    "src/models",
-    "src/providers",
-    "src/repositories",
-    "src/services",
-    "src/validators",
-    "src/routes/ai.routes.ts",
     "src/routes/auth.routes.ts",
     "src/routes/community.routes.ts",
     "src/routes/healthcare.routes.ts",
@@ -51,7 +50,6 @@
     "src/routes/welfare.routes.ts",
     "src/routes/workers.routes.ts",
     "src/routes/analytics.routes.ts",
-    "src/middleware/auth.middleware.ts",
     "src/middleware/error.middleware.ts"
   ]
 }

@@ -3,12 +3,14 @@ import jwt from 'jsonwebtoken';
 import config from '../config';
 import { UserRole } from '../types';
 
+export interface JwtUser {
+  userId: string;
+  role: UserRole;
+  email: string;
+}
+
 export interface AuthenticatedRequest extends Request {
-  user?: {
-    userId: string;
-    role: UserRole;
-    email: string;
-  };
+  user?: JwtUser;
 }
 
 export interface JwtPayload {

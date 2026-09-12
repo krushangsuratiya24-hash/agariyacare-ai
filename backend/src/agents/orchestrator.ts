@@ -8,7 +8,7 @@ import { WelfareAgent } from './welfare.agent';
 import { SafetyAgent } from './safety.agent';
 import { CommunityAgent } from './community.agent';
 import { MarketplaceAgent } from './marketplace.agent';
-import { AgentType, ChatRequest, ChatResponse } from '../types';
+import { AgentType, ChatRequest, ChatResponse, UserRole } from '../types';
 import { userRepo, workerProfileRepo, saltInventoryRepo, saltListingRepo, offerRepo, transactionRepo, buyerRequestRepo, marketPriceRepo } from '../repositories';
 
 // ─── Intent classification ────────────────────────────────────────────────────
@@ -93,13 +93,13 @@ export class AIOrchestrator {
       .map(([type]) => type);
   }
 
-  async process(request: ChatRequest): Promise<ChatResponse> {
+  async process(request: ChatRequest & { userRole?: UserRole }): Promise<ChatResponse> {
     const intents = this.classifyIntent(request.message);
     const primaryIntent = intents[0] ?? 'general';
 
     // Fetch user context if available
-    let user = null;
-    let workerProfile = null;
+    let user: any = null;
+    let workerProfile: any = null;
     const userId = request.userId || request.workerId;
 
     if (userId) {

@@ -1,7 +1,7 @@
 import { Agent, AgentContext, AgentResponse } from './base.agent';
 import { getAIProvider } from '../providers';
 import { safetyRepo } from '../repositories';
-import { SafetyLevel, SafetyReading } from '../types';
+import { SafetyReading } from '../types';
 
 const SYSTEM_PROMPT = `You are the Worker Safety Monitoring Agent for AgariyaCare AI, dedicated to protecting Agariya salt pan workers in the Little Rann of Kutch from environmental and occupational hazards.
 
@@ -45,7 +45,9 @@ export class SafetyAgent implements Agent {
     if (context.workerId) {
       const readings = await safetyRepo.findReadings(context.workerId);
       if (readings.length > 0) {
-        currentReading = readings.sort((a, b) => b.timestamp.localeCompare(a.timestamp))[0];
+        currentReading = readings.sort((a, b) =>
+          (b.timestamp ?? b.recordedAt ?? '').localeCompare(a.timestamp ?? a.recordedAt ?? '')
+        )[0];
       }
     }
 

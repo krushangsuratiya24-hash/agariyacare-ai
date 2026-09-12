@@ -40,7 +40,7 @@ export class SaltPriceAgent implements Agent {
 
     const prices = await marketPriceRepo.getLatestPrices();
     const priceInfo = prices.map(p =>
-      `- ${p.market} (${p.location}): ${p.saltType} ${p.qualityGrade} = ₹${p.pricePerTonne}/tonne | Buyer: ${p.buyer} | Updated: ${new Date(p.lastUpdated).toLocaleDateString('en-IN')}`
+      `- ${p.market ?? p.region ?? ''} (${p.location ?? ''}): ${p.saltType ?? ''} ${p.qualityGrade ?? ''} = ₹${p.pricePerTonne ?? (p.pricePerKg ? p.pricePerKg * 1000 : 0)}/tonne | Buyer: ${p.buyer ?? ''} | Updated: ${p.lastUpdated ? new Date(p.lastUpdated).toLocaleDateString('en-IN') : 'N/A'}`
     ).join('\n');
 
     const trend = await marketPriceRepo.getPriceTrend(7);

@@ -1,12 +1,12 @@
 // Base agent interface
 
 import { AIMessage } from '../providers/ai/interface';
-import { AgentType, ChatMessage, ChatAction, Worker } from '../types';
+import { AgentType, ChatAction, Worker, HistoryMessage } from '../types';
 
 export interface AgentContext {
   workerId?: string;
   worker?: Worker | null;
-  conversationHistory?: ChatMessage[];
+  conversationHistory?: HistoryMessage[];
   language?: 'en' | 'gu';
 }
 
@@ -25,6 +25,6 @@ export interface Agent {
   handle(query: string, context: AgentContext): Promise<AgentResponse>;
 }
 
-export function toAIMessages(history: ChatMessage[]): AIMessage[] {
-  return history.map(m => ({ role: m.role, content: m.content }));
+export function toAIMessages(history: HistoryMessage[]): AIMessage[] {
+  return history.map(m => ({ role: m.role as 'user' | 'assistant', content: m.content }));
 }

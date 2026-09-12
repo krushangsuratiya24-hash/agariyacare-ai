@@ -239,19 +239,39 @@ export const WorkerDashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* AI assistant */}
+        {/* AI assistant — Phase 4 live */}
         <div className="card card-body">
-          <SectionHeader
-            title={t('dashboard.aiAssistant')}
-            badge="Phase 4"
-          />
-          <div className="flex flex-col items-center justify-center py-6 text-center">
-            <div className="w-10 h-10 rounded-full bg-ivory-200 flex items-center justify-center mb-3">
-              <svg className="w-5 h-5 text-charcoal-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-              </svg>
+          <SectionHeader title={t('dashboard.aiAssistant')} />
+          <div className="space-y-2">
+            <p className="text-sm text-charcoal-600 leading-relaxed">{t('dashboard.aiDescription')}</p>
+            <div className="grid grid-cols-1 gap-1.5 mt-3">
+              {[
+                t('dashboard.aiSuggest1'),
+                t('dashboard.aiSuggest2'),
+                t('dashboard.aiSuggest3'),
+              ].map((q) => (
+                <Link
+                  key={q}
+                  to="/ai-assistant"
+                  state={{ prompt: q }}
+                  className="flex items-center gap-2 text-xs text-charcoal-600 bg-ivory-50 hover:bg-eucalyptus-50 border border-charcoal-100 hover:border-eucalyptus-200 rounded-xl px-3 py-2 transition-colors"
+                >
+                  <svg className="w-3.5 h-3.5 text-eucalyptus-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                  </svg>
+                  <span className="flex-1 truncate">{q}</span>
+                </Link>
+              ))}
             </div>
-            <p className="text-sm text-charcoal-500">{t('dashboard.aiComingSoon')}</p>
+            <Link
+              to="/ai-assistant"
+              className="w-full mt-2 flex items-center justify-center gap-2 text-sm font-medium text-eucalyptus-700 bg-eucalyptus-50 hover:bg-eucalyptus-100 border border-eucalyptus-200 rounded-xl px-4 py-2.5 transition-colors"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+              </svg>
+              {t('dashboard.openAI')}
+            </Link>
           </div>
         </div>
       </div>

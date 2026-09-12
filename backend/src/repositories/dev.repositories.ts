@@ -494,12 +494,12 @@ export class DevUserRepository implements UserRepository {
 
   async create(data: Omit<User, 'id' | 'createdAt' | 'updatedAt'>) {
     await this.init();
-    const user: User = {
+    const user = {
       ...data,
       id: uuidv4(),
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-    };
+    } as User;
     this.store.push(user);
     return user;
   }
@@ -592,7 +592,7 @@ export class DevSaltClassificationRepository implements SaltClassificationReposi
   async findAllTypes(activeOnly = false) { return activeOnly ? this.types.filter(t => t.isActive) : [...this.types]; }
   async findTypeById(id: string) { return this.types.find(t => t.id === id) ?? null; }
   async createType(data: Omit<SaltType, 'id' | 'createdAt'>) {
-    const t: SaltType = { ...data, id: uuidv4(), createdAt: new Date().toISOString() };
+    const t = { ...data, id: uuidv4(), createdAt: new Date().toISOString() } as SaltType;
     this.types.push(t); return t;
   }
   async updateType(id: string, updates: Partial<SaltType>) {
@@ -605,7 +605,7 @@ export class DevSaltClassificationRepository implements SaltClassificationReposi
   async findGradeById(id: string) { return this.grades.find(g => g.id === id) ?? null; }
   async findAllGrades(activeOnly = false) { return activeOnly ? this.grades.filter(g => g.isActive) : [...this.grades]; }
   async createGrade(data: Omit<SaltGrade, 'id' | 'createdAt'>) {
-    const g: SaltGrade = { ...data, id: uuidv4(), createdAt: new Date().toISOString() };
+    const g = { ...data, id: uuidv4(), createdAt: new Date().toISOString() } as SaltGrade;
     this.grades.push(g); return g;
   }
   async updateGrade(id: string, updates: Partial<SaltGrade>) {
@@ -645,7 +645,7 @@ export class DevSaltInventoryRepository implements SaltInventoryRepository {
 
   async create(data: Omit<SaltInventory, 'id' | 'createdAt' | 'updatedAt'>) {
     await this.init();
-    const inv: SaltInventory = { ...data, id: uuidv4(), createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
+    const inv = { ...data, id: uuidv4(), createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() } as SaltInventory;
     this.store.push(inv);
     return this.populate(inv);
   }
@@ -710,15 +710,15 @@ export class DevSaltListingRepository implements SaltListingRepository {
     if (filters?.saltGradeId) results = results.filter(l => l.saltGradeId === filters.saltGradeId);
     if (filters?.status) results = results.filter(l => l.status === filters.status);
     if (filters?.workerId) results = results.filter(l => l.workerId === filters.workerId);
-    if (filters?.district) results = results.filter(l => l.district.toLowerCase().includes(filters.district.toLowerCase()));
+    if (filters?.district) results = results.filter(l => l.district?.toLowerCase().includes(filters.district.toLowerCase()));
     if (filters?.minQuantityKg) results = results.filter(l => l.quantityKg >= filters.minQuantityKg);
     if (filters?.maxPricePerKg) results = results.filter(l => l.askingPricePerKg <= filters.maxPricePerKg);
     if (filters?.search) {
       const q = filters.search.toLowerCase();
       results = results.filter(l =>
         l.qualityDescription?.toLowerCase().includes(q) ||
-        l.pickupLocation.toLowerCase().includes(q) ||
-        l.district.toLowerCase().includes(q)
+        l.pickupLocation?.toLowerCase().includes(q) ||
+        l.district?.toLowerCase().includes(q)
       );
     }
     results.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
@@ -733,7 +733,7 @@ export class DevSaltListingRepository implements SaltListingRepository {
 
   async create(data: Omit<SaltListing, 'id' | 'createdAt' | 'updatedAt' | 'viewCount'>) {
     await this.init();
-    const lst: SaltListing = { ...data, id: uuidv4(), viewCount: 0, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
+    const lst = { ...data, id: uuidv4(), viewCount: 0, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() } as SaltListing;
     this.store.push(lst);
     return this.populate(lst);
   }
@@ -802,7 +802,7 @@ export class DevBuyerRequestRepository implements BuyerRequestRepository {
 
   async create(data: Omit<BuyerRequest, 'id' | 'createdAt' | 'updatedAt'>) {
     await this.init();
-    const req: BuyerRequest = { ...data, id: uuidv4(), createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
+    const req = { ...data, id: uuidv4(), createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() } as BuyerRequest;
     this.store.push(req);
     return this.populate(req);
   }
@@ -960,9 +960,9 @@ export class DevTransactionRepository implements TransactionRepository {
 
   private async populate(tx: Transaction): Promise<Transaction> {
     const [listing, saltType, saltGrade, seller, buyer] = await Promise.all([
-      this.listingRepo.findById(tx.listingId),
-      this.classRepo.findTypeById(tx.saltTypeId),
-      this.classRepo.findGradeById(tx.saltGradeId),
+      tx.listingId ? this.listingRepo.findById(tx.listingId) : Promise.resolve(null),
+      tx.saltTypeId ? this.classRepo.findTypeById(tx.saltTypeId) : Promise.resolve(null),
+      tx.saltGradeId ? this.classRepo.findGradeById(tx.saltGradeId) : Promise.resolve(null),
       this.userRepo.findById(tx.sellerId),
       this.userRepo.findById(tx.buyerId),
     ]);
@@ -1033,7 +1033,7 @@ export class DevMarketPriceRepository implements MarketPriceRepository {
 
   async create(data: Omit<MarketPrice, 'id' | 'createdAt'>) {
     await this.init();
-    const mp: MarketPrice = { ...data, id: uuidv4(), createdAt: new Date().toISOString() };
+    const mp = { ...data, id: uuidv4(), createdAt: new Date().toISOString() } as MarketPrice;
     this.marketStore.push(mp);
     return mp;
   }
@@ -1050,7 +1050,7 @@ export class DevMarketPriceRepository implements MarketPriceRepository {
   async findAllPrices(filters?: any) {
     return this.legacyStore.filter(e => {
       if (filters?.saltType && e.saltType !== filters.saltType) return false;
-      if (filters?.location && !e.location.toLowerCase().includes(filters.location.toLowerCase())) return false;
+      if (filters?.location && !e.location?.toLowerCase().includes(filters.location.toLowerCase())) return false;
       return true;
     });
   }
@@ -1058,19 +1058,20 @@ export class DevMarketPriceRepository implements MarketPriceRepository {
   async getLatestPrices() {
     const byMarket = new Map<string, SaltPriceEntry>();
     for (const e of this.legacyStore) {
-      const existing = byMarket.get(e.market);
-      if (!existing || e.date > existing.date) byMarket.set(e.market, e);
+      const key = e.market ?? e.id;
+      const existing = byMarket.get(key);
+      if (!existing || (e.date ?? '') > (existing.date ?? '')) byMarket.set(key, e);
     }
     return Array.from(byMarket.values());
   }
 
   async getPriceTrend(days: number) {
     const cutoff = new Date(Date.now() - days * 86400000).toISOString().split('T')[0];
-    return this.legacyStore.filter(e => e.date >= cutoff).sort((a, b) => a.date.localeCompare(b.date));
+    return this.legacyStore.filter(e => (e.date ?? '') >= cutoff).sort((a, b) => (a.date ?? '').localeCompare(b.date ?? ''));
   }
 
   async createEntry(entry: Omit<SaltPriceEntry, 'id'>) {
-    const e: SaltPriceEntry = { ...entry, id: uuidv4() };
+    const e = { ...entry, id: uuidv4() } as SaltPriceEntry;
     this.legacyStore.push(e);
     return e;
   }
@@ -1129,7 +1130,7 @@ export class DevHealthcareRepository implements HealthcareRepository {
     });
   }
   async createRequest(req: Omit<HealthcareRequest, 'id' | 'createdAt' | 'updatedAt'>) {
-    const r: HealthcareRequest = { ...req, id: uuidv4(), createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
+    const r = { ...req, id: uuidv4(), createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() } as HealthcareRequest;
     this.requests.push(r); return r;
   }
   async updateRequest(id: string, updates: Partial<HealthcareRequest>) {
@@ -1141,7 +1142,7 @@ export class DevHealthcareRepository implements HealthcareRepository {
   async findAllCamps() { return [...this.camps]; }
   async findCampById(id: string) { return this.camps.find(c => c.id === id) ?? null; }
   async createCamp(camp: Omit<HealthcareCamp, 'id'>) {
-    const c: HealthcareCamp = { ...camp, id: uuidv4() };
+    const c = { ...camp, id: uuidv4() } as HealthcareCamp;
     this.camps.push(c); return c;
   }
   async updateCamp(id: string, updates: Partial<HealthcareCamp>) {
@@ -1159,7 +1160,7 @@ export class DevWelfareRepository implements WelfareRepository {
   async findAllSchemes(activeOnly = false) { return activeOnly ? this.store.filter(s => s.isActive) : [...this.store]; }
   async findSchemeById(id: string) { return this.store.find(s => s.id === id) ?? null; }
   async createScheme(scheme: Omit<WelfareScheme, 'id'>) {
-    const s: WelfareScheme = { ...scheme, id: uuidv4() };
+    const s = { ...scheme, id: uuidv4() } as WelfareScheme;
     this.store.push(s); return s;
   }
   async updateScheme(id: string, updates: Partial<WelfareScheme>) {
@@ -1179,7 +1180,7 @@ export class DevSafetyRepository implements SafetyRepository {
 
   async findReadings(workerId?: string) { return workerId ? this.readings.filter(r => r.workerId === workerId) : [...this.readings]; }
   async createReading(reading: Omit<SafetyReading, 'id'>) {
-    const r: SafetyReading = { ...reading, id: uuidv4() };
+    const r = { ...reading, id: uuidv4() } as SafetyReading;
     this.readings.push(r); return r;
   }
   async findIncidents(filters?: { workerId?: string; status?: string }) {
@@ -1191,7 +1192,7 @@ export class DevSafetyRepository implements SafetyRepository {
   }
   async findIncidentById(id: string) { return this.incidents.find(i => i.id === id) ?? null; }
   async createIncident(incident: Omit<SafetyIncident, 'id' | 'createdAt' | 'updatedAt'>) {
-    const i: SafetyIncident = { ...incident, id: uuidv4(), createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
+    const i = { ...incident, id: uuidv4(), createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() } as SafetyIncident;
     this.incidents.push(i); return i;
   }
   async updateIncident(id: string, updates: Partial<SafetyIncident>) {
@@ -1202,7 +1203,7 @@ export class DevSafetyRepository implements SafetyRepository {
   }
   async findActiveAlerts() { return this.alerts.filter(a => a.isActive); }
   async createAlert(alert: Omit<SafetyAlert, 'id' | 'createdAt'>) {
-    const a: SafetyAlert = { ...alert, id: uuidv4(), createdAt: new Date().toISOString() };
+    const a = { ...alert, id: uuidv4(), createdAt: new Date().toISOString() } as SafetyAlert;
     this.alerts.push(a); return a;
   }
 }
@@ -1216,7 +1217,7 @@ export class DevCommunityRepository implements CommunityRepository {
   async findAllNotices(activeOnly = false) { return activeOnly ? this.notices.filter(n => n.isActive) : [...this.notices]; }
   async findNoticeById(id: string) { return this.notices.find(n => n.id === id) ?? null; }
   async createNotice(notice: Omit<CommunityNotice, 'id' | 'createdAt' | 'updatedAt'>) {
-    const n: CommunityNotice = { ...notice, id: uuidv4(), createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
+    const n = { ...notice, id: uuidv4(), createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() } as CommunityNotice;
     this.notices.push(n); return n;
   }
   async updateNotice(id: string, updates: Partial<CommunityNotice>) {
@@ -1239,7 +1240,7 @@ export class DevCommunityRepository implements CommunityRepository {
   }
   async findSupportRequestById(id: string) { return this.supportReqs.find(r => r.id === id) ?? null; }
   async createSupportRequest(req: Omit<SupportRequest, 'id' | 'createdAt' | 'updatedAt'>) {
-    const r: SupportRequest = { ...req, id: uuidv4(), createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
+    const r = { ...req, id: uuidv4(), createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() } as SupportRequest;
     this.supportReqs.push(r); return r;
   }
   async updateSupportRequest(id: string, updates: Partial<SupportRequest>) {
@@ -1256,11 +1257,13 @@ export class DevNotificationRepository implements NotificationRepository {
   private store: Notification[] = clone(devNotifications);
 
   async findByUserId(userId: string) {
-    return this.store.filter(n => n.userId === userId).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    return this.store.filter(n => n.userId === userId).sort((a, b) =>
+      String(b.createdAt ?? '').localeCompare(String(a.createdAt ?? ''))
+    );
   }
   async findUnreadByUserId(userId: string) { return this.store.filter(n => n.userId === userId && !n.isRead); }
   async create(notification: Omit<Notification, 'id' | 'createdAt'>) {
-    const n: Notification = { ...notification, id: uuidv4(), createdAt: new Date().toISOString() };
+    const n = { ...notification, id: uuidv4(), createdAt: new Date().toISOString() } as Notification;
     this.store.push(n); return n;
   }
   async markAsRead(id: string) {
@@ -1281,7 +1284,7 @@ export class DevWorkerRepository implements WorkerRepository {
   async findById(id: string) { return this.store.find(w => w.id === id) ?? null; }
   async findAll() { return [...this.store]; }
   async create(worker: Omit<Worker, 'id' | 'createdAt'>) {
-    const w: Worker = { ...worker, id: uuidv4(), createdAt: new Date().toISOString() };
+    const w = { ...worker, id: uuidv4(), createdAt: new Date().toISOString() } as Worker;
     this.store.push(w); return w;
   }
   async update(id: string, updates: Partial<Worker>) {

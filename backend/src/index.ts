@@ -14,6 +14,7 @@ import userRoutes from './routes/users';
 import adminRoutes from './routes/admin';
 import marketplaceRoutes from './routes/marketplace';
 import offersRoutes from './routes/offers';
+import aiRoutes from './routes/ai.routes';
 import { errorHandler, notFound } from './middleware/errorHandler';
 
 const app = express();
@@ -49,6 +50,18 @@ const generalLimiter = rateLimit({
   legacyHeaders: false,
 });
 
+// AI rate limiter — per user, per 15 minutes
+const aiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 30, // 30 AI requests per 15 min per IP
+  message: {
+    success: false,
+    error: 'Too many AI requests. Please wait a moment before trying again.',
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 app.use(generalLimiter);
 
 // ─── Body parsing ─────────────────────────────────────────────────────────────
@@ -67,6 +80,9 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/marketplace', marketplaceRoutes);
 app.use('/api/offers', offersRoutes);
 // /api/offers/transactions/* handled inside offersRoutes
+
+// Phase 4 — AI assistant
+app.use('/api/ai', aiLimiter, aiRoutes);
 
 // Health check
 app.get('/api/health', (_req, res) => {

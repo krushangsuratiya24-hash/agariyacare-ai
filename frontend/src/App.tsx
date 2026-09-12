@@ -40,6 +40,9 @@ import { TransactionDetailPage } from './pages/TransactionDetailPage';
 // Placeholder pages
 import { PlaceholderPage } from './pages/shared/PlaceholderPage';
 
+// Phase 4 — AI Assistant
+import AIAssistantPage from './pages/AIAssistantPage';
+
 // Smart router: worker sees WorkerOffersPage, buyer sees BuyerOffersPage
 const OffersRouter: React.FC = () => {
   const { user } = useAuthStore();
@@ -134,8 +137,10 @@ const App: React.FC = () => {
               <Route path="/community"  element={<PlaceholderPage titleKey="nav.community"  phase={3} />} />
               <Route path="/support"    element={<PlaceholderPage titleKey="nav.support"    phase={3} />} />
 
-              {/* Phase 4 */}
-              <Route path="/ai" element={<PlaceholderPage titleKey="nav.aiAssistant" phase={4} />} />
+              {/* Phase 4 — AI Assistant (real implementation) */}
+              <Route path="/ai-assistant" element={<AIAssistantPage />} />
+              {/* Legacy /ai redirect */}
+              <Route path="/ai" element={<AIAssistantPage />} />
 
               {/* Admin routes */}
               <Route path="/admin/users"        element={<PlaceholderPage titleKey="nav.users"        phase={1} />} />
