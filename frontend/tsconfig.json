@@ -21,21 +21,16 @@
     }
   },
   "include": [
-    "src/main.tsx",
-    "src/App.tsx",
-    "src/i18n.ts",
-    "src/i18n/**/*",
-    "src/types/**/*",
-    "src/context/**/*",
-    "src/hooks/**/*",
-    "src/services/**/*",
-    "src/utils/**/*",
-    "src/components/ui/**/*",
-    "src/components/auth/**/*",
-    "src/components/layout/**/*",
-    "src/components/onboarding/**/*",
-    "src/components/profile/**/*",
-    "src/pages/shared/**/*"
+    "src/**/*"
+  ],
+  "exclude": [
+    "src/pages/DashboardPage.tsx",
+    "src/pages/OnboardingPage.tsx",
+    "src/pages/ProfilePage.tsx",
+    "src/pages/NotificationsPage.tsx",
+    "src/pages/CommunityPage.tsx",
+    "src/pages/MyOffersPage.tsx",
+    "src/layouts/AppLayout.tsx"
   ],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
