@@ -6,6 +6,7 @@ import {
   listingService, savedListingService,
   SaltListing, BuyerRequest,
 } from '../services/marketplaceService';
+import { offerService, Offer } from '../services/offerService';
 import { useAuthStore } from '../context/authStore';
 import { Spinner, SkeletonCard, Alert } from '../components/ui/index';
 
@@ -25,9 +26,15 @@ const STATUS_LABEL: Record<string, { label: string; cls: string }> = {
   SOLD:   { label: 'Sold',    cls: 'bg-charcoal-100 text-charcoal-600 badge' },
 };
 
+function fmtNum(n: number | string | null | undefined, dec = 2): string {
+  if (n === null || n === undefined) return '—';
+  return Number(n).toLocaleString('en-IN', { maximumFractionDigits: dec });
+}
+
 export const ListingDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const gu = i18n.language === 'gu';
   const { user } = useAuthStore();
   const navigate = useNavigate();
 
@@ -37,6 +44,16 @@ export const ListingDetailPage: React.FC = () => {
   const [loadingAction, setLoadingAction] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
+
+  // Make-offer form state
+  const [showOfferForm, setShowOfferForm] = useState(false);
+  const [offerQty, setOfferQty] = useState('');
+  const [offerPrice, setOfferPrice] = useState('');
+  const [offerMsg, setOfferMsg] = useState('');
+  const [offerSubmitting, setOfferSubmitting] = useState(false);
+
+  // Worker: incoming offers count
+  const [incomingOffersCount, setIncomingOffersCount] = useState<number | null>(null);
 
   const isOwner  = user?.id === listing?.worker_id;
   const isBuyer  = user?.role === 'BUYER';
@@ -67,6 +84,61 @@ export const ListingDetailPage: React.FC = () => {
   }, [id]);
 
   useEffect(() => { load(); }, [load]);
+
+  // Load incoming offers count for worker
+  useEffect(() => {
+    if (isOwner && id) {
+      offerService.getForListing(id).then(res => {
+        if (res.success && res.data) {
+          setIncomingOffersCount(res.data.filter((o: Offer) => ['PENDING','COUNTERED'].includes(o.status)).length);
+        }
+      }).catch(() => {});
+    }
+  }, [isOwner, id]);
+
+  const handleMakeOffer = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) { navigate('/login'); return; }
+    if (!id || !listing) return;
+    if (!offerQty || !offerPrice) return;
+
+    const qty   = parseFloat(offerQty);
+    const price = parseFloat(offerPrice);
+
+    if (isNaN(qty) || qty <= 0) {
+      toast.error(gu ? 'જ. > 0' : 'Quantity must be positive');
+      return;
+    }
+    if (isNaN(price) || price <= 0) {
+      toast.error(gu ? 'ભ. > 0' : 'Price must be positive');
+      return;
+    }
+    if (qty > Number(listing.quantity_kg)) {
+      toast.error(gu ? `ઉ.જ.: ${listing.quantity_kg} kg` : `Max available: ${listing.quantity_kg} kg`);
+      return;
+    }
+
+    setOfferSubmitting(true);
+    try {
+      const res = await offerService.makeOffer({
+        listing_id: id,
+        quantity_kg: qty,
+        price_per_kg: price,
+        message: offerMsg || undefined,
+      });
+      if (!res.success) throw new Error(res.error);
+      toast.success(gu ? 'ઑ.મ.' : 'Offer submitted successfully!');
+      setShowOfferForm(false);
+      setOfferQty('');
+      setOfferPrice('');
+      setOfferMsg('');
+      navigate(`/offers`);
+    } catch (err: unknown) {
+      toast.error((err as Error).message || t('common.error'));
+    } finally {
+      setOfferSubmitting(false);
+    }
+  };
 
   const handleSave = async () => {
     if (!user) { navigate('/login'); return; }
@@ -220,62 +292,190 @@ export const ListingDetailPage: React.FC = () => {
         )}
 
         {/* Actions */}
-        <div className="border-t border-ivory-200 pt-4 mt-4 flex flex-wrap gap-2">
+        <div className="border-t border-ivory-200 pt-4 mt-4">
           {/* Buyer actions */}
-          {isBuyer && listing.status === 'ACTIVE' && (
-            <>
-              <button
-                onClick={handleSave}
-                disabled={loadingAction}
-                className={`btn-md flex items-center gap-2 ${saved ? 'btn-secondary text-eucalyptus-700' : 'btn-secondary'}`}
-              >
-                {loadingAction ? <Spinner size="sm" /> : (
-                  <svg className="w-4 h-4" fill={saved ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+          {isBuyer && listing.status === 'ACTIVE' && user?.id !== listing.worker_id && (
+            <div className="space-y-3">
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={handleSave}
+                  disabled={loadingAction}
+                  className={`btn-md flex items-center gap-2 ${saved ? 'btn-secondary text-eucalyptus-700' : 'btn-secondary'}`}
+                >
+                  {loadingAction ? <Spinner size="sm" /> : (
+                    <svg className="w-4 h-4" fill={saved ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                    </svg>
+                  )}
+                  {saved ? t('listingDetail.removeSaved') : t('listingDetail.saveThisListing')}
+                </button>
+                <button
+                  onClick={() => setShowOfferForm(!showOfferForm)}
+                  className="btn-primary btn-md flex items-center gap-1.5"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                   </svg>
-                )}
-                {saved ? t('listingDetail.removeSaved') : t('listingDetail.saveThisListing')}
-              </button>
-              <button className="btn-secondary btn-md text-charcoal-500" disabled>
-                {t('listingDetail.makeOffer')} <span className="text-xs ml-1 text-charcoal-400">(Phase 3)</span>
-              </button>
-            </>
+                  {gu ? 'ઑ.ક.' : t('listingDetail.makeOffer')}
+                </button>
+              </div>
+
+              {/* Inline offer form */}
+              {showOfferForm && (
+                <form
+                  onSubmit={handleMakeOffer}
+                  className="bg-eucalyptus-50 border border-eucalyptus-200 rounded-xl p-4 space-y-3"
+                >
+                  <p className="text-sm font-semibold text-charcoal-900">
+                    {gu ? 'ઑ.ફ.' : 'Make an Offer'}
+                  </p>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="label text-xs">
+                        {gu ? 'જ.(kg)' : 'Quantity (kg)'}
+                        <span className="ml-1 text-charcoal-400 font-normal">
+                          {gu ? 'ઉ.' : 'max'} {fmtNum(listing.quantity_kg, 0)} kg
+                        </span>
+                      </label>
+                      <input
+                        type="number"
+                        required
+                        step="1"
+                        min="1"
+                        max={String(listing.quantity_kg)}
+                        className="input"
+                        placeholder={String(listing.quantity_kg)}
+                        value={offerQty}
+                        onChange={e => setOfferQty(e.target.value)}
+                      />
+                    </div>
+                    <div>
+                      <label className="label text-xs">
+                        {gu ? 'ભ.(₹/kg)' : 'Your price (₹/kg)'}
+                        <span className="ml-1 text-charcoal-400 font-normal">
+                          {gu ? 'ઊ.' : 'listed'} ₹{fmtNum(listing.price_per_kg)}
+                        </span>
+                      </label>
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-charcoal-400 text-sm">₹</span>
+                        <input
+                          type="number"
+                          required
+                          step="0.01"
+                          min="0.01"
+                          className="input pl-7"
+                          placeholder={String(listing.price_per_kg)}
+                          value={offerPrice}
+                          onChange={e => setOfferPrice(e.target.value)}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Live summary */}
+                  {offerQty && offerPrice && (
+                    <div className="bg-white rounded-xl px-3 py-2 text-sm border border-eucalyptus-100">
+                      <div className="flex items-center justify-between">
+                        <span className="text-charcoal-500">
+                          {fmtNum(parseFloat(offerQty), 0)} kg × ₹{fmtNum(parseFloat(offerPrice))}
+                        </span>
+                        <span className="font-bold text-charcoal-900">
+                          = ₹{fmtNum(parseFloat(offerQty) * parseFloat(offerPrice), 0)}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  <div>
+                    <label className="label text-xs">{gu ? 'સ.(વ.)' : 'Message (optional)'}</label>
+                    <input
+                      type="text"
+                      className="input"
+                      placeholder={gu ? 'ઉ.ક.' : 'Any notes for the seller…'}
+                      value={offerMsg}
+                      onChange={e => setOfferMsg(e.target.value)}
+                    />
+                  </div>
+
+                  <div className="flex gap-2">
+                    <button
+                      type="submit"
+                      disabled={offerSubmitting || !offerQty || !offerPrice}
+                      className="btn-primary btn-md flex-1 flex items-center justify-center gap-1.5"
+                    >
+                      {offerSubmitting ? <Spinner size="sm" /> : null}
+                      {gu ? 'ઑ.મ.' : 'Submit Offer'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowOfferForm(false)}
+                      className="btn-secondary btn-md"
+                    >
+                      {t('common.cancel')}
+                    </button>
+                  </div>
+                </form>
+              )}
+            </div>
           )}
 
-          {/* Owner actions */}
+          {/* Owner (worker) actions */}
           {isOwner && (
-            <>
-              <Link to="/create-listing" state={{ editId: listing.id }} className="btn-secondary btn-md">
-                {t('listingDetail.editListing')}
-              </Link>
-              {listing.status === 'ACTIVE' && (
-                <button
-                  onClick={() => handleStatusChange('PAUSED')}
-                  disabled={loadingAction}
-                  className="btn-secondary btn-md"
+            <div className="space-y-3">
+              {/* Incoming offers badge */}
+              {incomingOffersCount !== null && incomingOffersCount > 0 && (
+                <Link
+                  to="/my-offers"
+                  className="flex items-center gap-2 text-sm font-medium text-eucalyptus-700 bg-eucalyptus-50 border border-eucalyptus-200 rounded-xl px-4 py-2.5 hover:bg-eucalyptus-100 transition-colors"
                 >
-                  {loadingAction ? <Spinner size="sm" /> : t('listingDetail.pauseListing')}
-                </button>
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                  </svg>
+                  {incomingOffersCount} {gu ? 'ઑ.ક.' : 'offer(s) awaiting response'} →
+                </Link>
               )}
-              {listing.status === 'PAUSED' && (
-                <button
-                  onClick={() => handleStatusChange('ACTIVE')}
-                  disabled={loadingAction}
-                  className="btn-primary btn-md"
+              <div className="flex flex-wrap gap-2">
+                <Link
+                  to="/my-offers"
+                  className="btn-secondary btn-md flex items-center gap-1.5"
                 >
-                  {loadingAction ? <Spinner size="sm" /> : t('listingDetail.reactivate')}
-                </button>
-              )}
-              {(listing.status === 'ACTIVE' || listing.status === 'PAUSED') && (
-                <button
-                  onClick={() => handleStatusChange('CLOSED')}
-                  disabled={loadingAction}
-                  className="btn-danger btn-md"
-                >
-                  {t('listingDetail.closeListing')}
-                </button>
-              )}
-            </>
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  {gu ? 'ઑ.જ.' : t('listingDetail.viewOffers')}
+                </Link>
+                <Link to="/create-listing" state={{ editId: listing.id }} className="btn-secondary btn-md">
+                  {t('listingDetail.editListing')}
+                </Link>
+                {listing.status === 'ACTIVE' && (
+                  <button
+                    onClick={() => handleStatusChange('PAUSED')}
+                    disabled={loadingAction}
+                    className="btn-secondary btn-md"
+                  >
+                    {loadingAction ? <Spinner size="sm" /> : t('listingDetail.pauseListing')}
+                  </button>
+                )}
+                {listing.status === 'PAUSED' && (
+                  <button
+                    onClick={() => handleStatusChange('ACTIVE')}
+                    disabled={loadingAction}
+                    className="btn-primary btn-md"
+                  >
+                    {loadingAction ? <Spinner size="sm" /> : t('listingDetail.reactivate')}
+                  </button>
+                )}
+                {(listing.status === 'ACTIVE' || listing.status === 'PAUSED') && (
+                  <button
+                    onClick={() => handleStatusChange('CLOSED')}
+                    disabled={loadingAction}
+                    className="btn-danger btn-md"
+                  >
+                    {t('listingDetail.closeListing')}
+                  </button>
+                )}
+              </div>
+            </div>
           )}
         </div>
       </div>

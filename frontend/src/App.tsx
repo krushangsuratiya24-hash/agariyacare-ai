@@ -31,8 +31,21 @@ import { ListingDetailPage } from './pages/ListingDetailPage';
 import { BuyerRequestsPage } from './pages/BuyerRequestsPage';
 import { SavedListingsPage } from './pages/SavedListingsPage';
 
+// Phase 3 — Offers & Transactions
+import { WorkerOffersPage } from './pages/WorkerOffersPage';
+import { BuyerOffersPage } from './pages/BuyerOffersPage';
+import { TransactionsPage } from './pages/TransactionsPage';
+import { TransactionDetailPage } from './pages/TransactionDetailPage';
+
 // Placeholder pages
 import { PlaceholderPage } from './pages/shared/PlaceholderPage';
+
+// Smart router: worker sees WorkerOffersPage, buyer sees BuyerOffersPage
+const OffersRouter: React.FC = () => {
+  const { user } = useAuthStore();
+  if (user?.role === 'AGARIYA_WORKER') return <WorkerOffersPage />;
+  return <BuyerOffersPage />;
+};
 
 const App: React.FC = () => {
   const { initialize, isInitialized } = useAuthStore();
@@ -100,15 +113,21 @@ const App: React.FC = () => {
               <Route path="/create-listing"   element={<CreateListingPage />} />
               <Route path="/salt-market"      element={<MarketplacePage />} />
               <Route path="/salt-market/:id"  element={<ListingDetailPage />} />
-              <Route path="/my-offers"        element={<PlaceholderPage titleKey="nav.myOffers" phase={2} />} />
-              <Route path="/my-sales"         element={<PlaceholderPage titleKey="nav.mySales"  phase={2} />} />
+              <Route path="/my-sales"         element={<PlaceholderPage titleKey="nav.mySales" phase={2} />} />
 
               {/* Buyer pages — Phase 2 */}
-              <Route path="/buyer-requests" element={<BuyerRequestsPage />} />
-              <Route path="/purchases"      element={<PlaceholderPage titleKey="nav.purchases" phase={2} />} />
-              <Route path="/saved-listings" element={<SavedListingsPage />} />
+              <Route path="/buyer-requests"   element={<BuyerRequestsPage />} />
+              <Route path="/purchases"        element={<PlaceholderPage titleKey="nav.purchases" phase={2} />} />
+              <Route path="/saved-listings"   element={<SavedListingsPage />} />
 
-              {/* Phase 3 */}
+              {/* Phase 3 — Offers & Transactions */}
+              <Route path="/my-offers"          element={<OffersRouter />} />
+              <Route path="/offers"             element={<OffersRouter />} />
+              <Route path="/offers/:id"         element={<OffersRouter />} />
+              <Route path="/transactions"       element={<TransactionsPage />} />
+              <Route path="/transactions/:id"   element={<TransactionDetailPage />} />
+
+              {/* Phase 3 — Coming features */}
               <Route path="/healthcare" element={<PlaceholderPage titleKey="nav.healthcare" phase={3} />} />
               <Route path="/safety"     element={<PlaceholderPage titleKey="nav.safety"     phase={3} />} />
               <Route path="/welfare"    element={<PlaceholderPage titleKey="nav.welfare"    phase={3} />} />

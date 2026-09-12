@@ -870,7 +870,7 @@ export const getMatchesForRequest = async (req: Request, res: Response): Promise
 export const getWorkerDashboardStats = async (req: Request, res: Response): Promise<void> => {
   const workerId = req.user!.id;
   try {
-    const [inventory, listings, activity] = await Promise.all([
+    const [inventory, listings, activity, offerStats, txStats] = await Promise.all([
       query(
         `SELECT
            COALESCE(SUM(CASE WHEN status = 'AVAILABLE' THEN quantity_kg END), 0) AS available_kg,
@@ -897,6 +897,21 @@ export const getWorkerDashboardStats = async (req: Request, res: Response): Prom
          ORDER BY br.created_at DESC LIMIT 3`,
         []
       ),
+      query(
+        `SELECT
+           COUNT(CASE WHEN status IN ('PENDING','COUNTERED') THEN 1 END) AS pending_offers,
+           COUNT(CASE WHEN status = 'ACCEPTED' THEN 1 END) AS accepted_offers
+         FROM offers WHERE worker_id = $1`,
+        [workerId]
+      ),
+      query(
+        `SELECT
+           COUNT(*) AS total_transactions,
+           COUNT(CASE WHEN status NOT IN ('CANCELLED','DISPUTED','COMPLETED') THEN 1 END) AS active_transactions,
+           COALESCE(SUM(CASE WHEN status = 'COMPLETED' THEN total_amount END),0) AS completed_value
+         FROM transactions WHERE seller_id = $1`,
+        [workerId]
+      ),
     ]);
 
     res.json({
@@ -905,6 +920,8 @@ export const getWorkerDashboardStats = async (req: Request, res: Response): Prom
         inventory: inventory.rows[0],
         listings:  listings.rows[0],
         recent_buyer_requests: activity.rows,
+        offers: offerStats.rows[0],
+        transactions: txStats.rows[0],
       },
     });
   } catch (err) {
@@ -916,7 +933,7 @@ export const getWorkerDashboardStats = async (req: Request, res: Response): Prom
 export const getBuyerDashboardStats = async (req: Request, res: Response): Promise<void> => {
   const buyerId = req.user!.id;
   try {
-    const [saved, requests, recent] = await Promise.all([
+    const [saved, requests, recent, offerStats, txStats] = await Promise.all([
       query(
         `SELECT COUNT(*) AS saved_count FROM saved_listings WHERE user_id = $1`,
         [buyerId]
@@ -937,6 +954,18 @@ export const getBuyerDashboardStats = async (req: Request, res: Response): Promi
          ORDER BY l.created_at DESC LIMIT 3`,
         []
       ),
+      query(
+        `SELECT
+           COUNT(CASE WHEN status = 'PENDING'  THEN 1 END) AS pending_offers,
+           COUNT(CASE WHEN status = 'COUNTERED' THEN 1 END) AS countered_offers,
+           COUNT(CASE WHEN status = 'ACCEPTED'  THEN 1 END) AS accepted_offers
+         FROM offers WHERE buyer_id = $1`,
+        [buyerId]
+      ),
+      query(
+        `SELECT COUNT(*) AS total_transactions FROM transactions WHERE buyer_id = $1`,
+        [buyerId]
+      ),
     ]);
 
     res.json({
@@ -945,6 +974,8 @@ export const getBuyerDashboardStats = async (req: Request, res: Response): Promi
         saved_count:   parseInt(saved.rows[0].saved_count),
         requests:      requests.rows[0],
         recent_listings: recent.rows,
+        offers: offerStats.rows[0],
+        transactions: txStats.rows[0],
       },
     });
   } catch (err) {

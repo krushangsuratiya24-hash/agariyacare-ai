@@ -8,6 +8,7 @@ import {
   WorkerDashboardStats,
   BuyerDashboardStats,
 } from '../../services/marketplaceService';
+import { offerService, WorkerOfferStats, BuyerOfferStats } from '../../services/offerService';
 
 // ── Metric Card ───────────────────────────────────────────────────────────────
 const MetricCard: React.FC<{
@@ -55,19 +56,29 @@ export const WorkerDashboard: React.FC = () => {
   const { t } = useTranslation();
   const { user } = useAuthStore();
   const [stats, setStats] = useState<WorkerDashboardStats | null>(null);
+  const [offerStats, setOfferStats] = useState<WorkerOfferStats | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    dashboardService.getWorkerStats()
-      .then(res => { if (res.success && res.data) setStats(res.data); })
-      .catch(() => { /* silently show empty states */ })
-      .finally(() => setLoading(false));
+    Promise.allSettled([
+      dashboardService.getWorkerStats(),
+      offerService.getWorkerStats(),
+    ]).then(([marketRes, offerRes]) => {
+      if (marketRes.status === 'fulfilled' && marketRes.value.success && marketRes.value.data) {
+        setStats(marketRes.value.data);
+      }
+      if (offerRes.status === 'fulfilled' && offerRes.value.success && offerRes.value.data) {
+        setOfferStats(offerRes.value.data);
+      }
+    }).finally(() => setLoading(false));
   }, []);
 
-  const availableKg = stats ? Number(stats.inventory.available_kg) : 0;
+  const availableKg    = stats ? Number(stats.inventory.available_kg) : 0;
   const activeListings = stats ? Number(stats.listings.active_listings) : 0;
-  const totalViews = stats ? Number(stats.listings.total_views) : 0;
-  const activeValue = stats ? Number(stats.listings.active_value) : 0;
+  const totalViews     = stats ? Number(stats.listings.total_views) : 0;
+  const activeValue    = stats ? Number(stats.listings.active_value) : 0;
+  const pendingOffers  = offerStats ? Number(offerStats.offers.pending_offers) : 0;
+  const activeTx       = offerStats ? Number(offerStats.transactions.active_transactions) : 0;
 
   return (
     <div className="space-y-6 max-w-4xl animate-fade-in">
@@ -83,40 +94,69 @@ export const WorkerDashboard: React.FC = () => {
       {loading ? (
         <div className="flex justify-center py-8"><Spinner size="md" /></div>
       ) : (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          <MetricCard
-            label={t('dashboard.saltAvailable')}
-            value={`${Number(availableKg).toLocaleString('en-IN')} kg`}
-            isEmpty={availableKg === 0}
-            emptyLabel={t('dashboard.noSaltYet')}
-            icon={<svg className="w-5 h-5 text-eucalyptus-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>}
-            accent="bg-eucalyptus-50"
-          />
-          <MetricCard
-            label={t('dashboard.activeListings')}
-            value={String(activeListings)}
-            isEmpty={activeListings === 0}
-            emptyLabel={t('dashboard.noListingsYet')}
-            icon={<svg className="w-5 h-5 text-sage-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>}
-            accent="bg-sage-50"
-          />
-          <MetricCard
-            label={t('dashboard.totalViews')}
-            value={totalViews.toLocaleString('en-IN')}
-            isEmpty={totalViews === 0}
-            emptyLabel={t('dashboard.noViewsYet')}
-            icon={<svg className="w-5 h-5 text-sand-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>}
-            accent="bg-sand-50"
-          />
-          <MetricCard
-            label={t('dashboard.activeValue')}
-            value={`₹${activeValue.toLocaleString('en-IN')}`}
-            isEmpty={activeValue === 0}
-            emptyLabel={t('dashboard.noSalesYet')}
-            icon={<svg className="w-5 h-5 text-charcoal-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>}
-            accent="bg-charcoal-50"
-          />
-        </div>
+        <>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <MetricCard
+              label={t('dashboard.saltAvailable')}
+              value={`${Number(availableKg).toLocaleString('en-IN')} kg`}
+              isEmpty={availableKg === 0}
+              emptyLabel={t('dashboard.noSaltYet')}
+              icon={<svg className="w-5 h-5 text-eucalyptus-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>}
+              accent="bg-eucalyptus-50"
+            />
+            <MetricCard
+              label={t('dashboard.activeListings')}
+              value={String(activeListings)}
+              isEmpty={activeListings === 0}
+              emptyLabel={t('dashboard.noListingsYet')}
+              icon={<svg className="w-5 h-5 text-sage-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>}
+              accent="bg-sage-50"
+            />
+            <MetricCard
+              label={t('dashboard.totalViews')}
+              value={totalViews.toLocaleString('en-IN')}
+              isEmpty={totalViews === 0}
+              emptyLabel={t('dashboard.noViewsYet')}
+              icon={<svg className="w-5 h-5 text-sand-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>}
+              accent="bg-sand-50"
+            />
+            <MetricCard
+              label={t('dashboard.activeValue')}
+              value={`₹${activeValue.toLocaleString('en-IN')}`}
+              isEmpty={activeValue === 0}
+              emptyLabel={t('dashboard.noSalesYet')}
+              icon={<svg className="w-5 h-5 text-charcoal-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>}
+              accent="bg-charcoal-50"
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <Link to="/my-offers" className="card card-body hover:shadow-md transition-shadow">
+              <p className="text-xs font-medium text-charcoal-500 uppercase tracking-wider mb-2">
+                {t('dashboard.pendingOffers')}
+              </p>
+              {pendingOffers > 0 ? (
+                <div className="flex items-center gap-2">
+                  <p className="text-2xl font-semibold text-amber-700">{pendingOffers}</p>
+                  <span className="text-xs bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full">
+                    {t('dashboard.viewOffers')} →
+                  </span>
+                </div>
+              ) : (
+                <p className="text-sm text-charcoal-400 italic">{t('dashboard.noOffersYet')}</p>
+              )}
+            </Link>
+            <Link to="/transactions" className="card card-body hover:shadow-md transition-shadow">
+              <p className="text-xs font-medium text-charcoal-500 uppercase tracking-wider mb-2">
+                {t('nav.transactions')}
+              </p>
+              {activeTx > 0 ? (
+                <p className="text-2xl font-semibold text-charcoal-900">{activeTx}</p>
+              ) : (
+                <p className="text-sm text-charcoal-400 italic">{t('dashboard.noSalesYet')}</p>
+              )}
+            </Link>
+          </div>
+        </>
       )}
 
       {/* Lower panels */}
@@ -224,17 +264,28 @@ export const BuyerDashboard: React.FC = () => {
   const { t } = useTranslation();
   const { user } = useAuthStore();
   const [stats, setStats] = useState<BuyerDashboardStats | null>(null);
+  const [offerStats, setOfferStats] = useState<BuyerOfferStats | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    dashboardService.getBuyerStats()
-      .then(res => { if (res.success && res.data) setStats(res.data); })
-      .catch(() => { /* silently show empty states */ })
-      .finally(() => setLoading(false));
+    Promise.allSettled([
+      dashboardService.getBuyerStats(),
+      offerService.getBuyerStats(),
+    ]).then(([marketRes, offerRes]) => {
+      if (marketRes.status === 'fulfilled' && marketRes.value.success && marketRes.value.data) {
+        setStats(marketRes.value.data);
+      }
+      if (offerRes.status === 'fulfilled' && offerRes.value.success && offerRes.value.data) {
+        setOfferStats(offerRes.value.data);
+      }
+    }).finally(() => setLoading(false));
   }, []);
 
-  const savedCount = stats?.saved_count ?? 0;
-  const openRequests = stats ? Number(stats.requests.open_requests) : 0;
+  const savedCount    = stats?.saved_count ?? 0;
+  const openRequests  = stats ? Number(stats.requests.open_requests) : 0;
+  const pendingOffers = offerStats ? Number(offerStats.offers.pending_offers) : 0;
+  const countered     = offerStats ? Number(offerStats.offers.countered_offers) : 0;
+  const totalTx       = offerStats ? Number(offerStats.transactions.total_transactions) : 0;
 
   return (
     <div className="space-y-6 max-w-4xl animate-fade-in">
@@ -273,9 +324,23 @@ export const BuyerDashboard: React.FC = () => {
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
                 {t('nav.saltMarket')}
               </Link>
-              <Link to="/buyer-requests" className="flex items-center gap-2 text-sm text-eucalyptus-700 hover:underline">
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-                {t('nav.buyerRequests')}
+              <Link to="/my-offers" className="flex items-center gap-2 text-sm text-eucalyptus-700 hover:underline">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                {t('nav.myOffers')}
+                {(pendingOffers > 0 || countered > 0) && (
+                  <span className="ml-auto text-xs bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full">
+                    {pendingOffers + countered}
+                  </span>
+                )}
+              </Link>
+              <Link to="/transactions" className="flex items-center gap-2 text-sm text-eucalyptus-700 hover:underline">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+                {t('nav.transactions')}
+                {totalTx > 0 && (
+                  <span className="ml-auto text-xs bg-eucalyptus-100 text-eucalyptus-700 px-1.5 py-0.5 rounded-full">
+                    {totalTx}
+                  </span>
+                )}
               </Link>
               <Link to="/saved-listings" className="flex items-center gap-2 text-sm text-eucalyptus-700 hover:underline">
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" /></svg>

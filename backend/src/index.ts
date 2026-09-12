@@ -8,10 +8,12 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
+import { runAllMigrations } from './db/runMigrations';
 import authRoutes from './routes/auth';
 import userRoutes from './routes/users';
 import adminRoutes from './routes/admin';
 import marketplaceRoutes from './routes/marketplace';
+import offersRoutes from './routes/offers';
 import { errorHandler, notFound } from './middleware/errorHandler';
 
 const app = express();
@@ -63,6 +65,8 @@ app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/marketplace', marketplaceRoutes);
+app.use('/api/offers', offersRoutes);
+// /api/offers/transactions/* handled inside offersRoutes
 
 // Health check
 app.get('/api/health', (_req, res) => {
@@ -74,10 +78,14 @@ app.use(notFound);
 app.use(errorHandler);
 
 // ─── Start server ─────────────────────────────────────────────────────────────
-app.listen(PORT, () => {
-  console.log(`\n🌿 AgariyaCare API running on port ${PORT}`);
-  console.log(`   Environment: ${process.env.NODE_ENV}`);
-  console.log(`   Database: ${process.env.DATABASE_URL?.replace(/:[^:@]+@/, ':***@')}\n`);
+runAllMigrations().catch(err => {
+  console.error('Migration failed on startup:', err);
+}).finally(() => {
+  app.listen(PORT, () => {
+    console.log(`\n🌿 AgariyaCare API running on port ${PORT}`);
+    console.log(`   Environment: ${process.env.NODE_ENV}`);
+    console.log(`   Database: ${process.env.DATABASE_URL?.replace(/:[^:@]+@/, ':***@')}\n`);
+  });
 });
 
 export default app;
