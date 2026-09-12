@@ -28,8 +28,9 @@ import {
   requireRole,
   AuthenticatedRequest,
 } from '../middleware/auth.middleware';
-import { safetyRepo, notificationRepo, userRepo, emergencyRepo } from '../repositories';
+import { safetyRepo, notificationRepo, emergencyRepo } from '../repositories';
 import { SafetyAgent } from '../agents/safety.agent';
+import { query as dbQuery } from '../db/pool';
 
 const router = Router();
 
@@ -47,9 +48,11 @@ async function notifyCoordinatorsOfSafety(
   metadata?: Record<string, unknown>
 ) {
   try {
-    const users = await userRepo.findAll();
-    const coordinators = users.filter(u => u.role === 'COORDINATOR' || u.role === 'ADMIN');
-    for (const coord of coordinators) {
+    // Use direct SQL to find real coordinators from PostgreSQL
+    const coordinatorsResult = await dbQuery(
+      `SELECT id FROM users WHERE role IN ('COORDINATOR', 'ADMIN') AND is_active = TRUE`
+    );
+    for (const coord of coordinatorsResult.rows) {
       await notificationRepo.create({
         userId: coord.id,
         type: 'SAFETY_ALERT',
@@ -236,8 +239,8 @@ router.post('/incidents', requireAuth, async (req: Request, res: Response) => {
   const workerId = authReq.user!.userId;
 
   try {
-    const user = await userRepo.findById(workerId);
-    const name = workerName || user?.name || user?.full_name || 'Worker';
+    const userRes = await dbQuery(`SELECT full_name FROM users WHERE id = $1`, [workerId]);
+    const name = workerName || userRes.rows[0]?.full_name || 'Worker';
 
     const incident = await safetyRepo.createIncident({
       workerId,
@@ -388,8 +391,8 @@ router.post('/sos', requireAuth, async (req: Request, res: Response) => {
   const workerId = authReq.user!.userId;
 
   try {
-    const user = await userRepo.findById(workerId);
-    const name = workerName || user?.name || user?.full_name || 'Worker';
+    const userRes = await dbQuery(`SELECT full_name FROM users WHERE id = $1`, [workerId]);
+    const name = workerName || userRes.rows[0]?.full_name || 'Worker';
 
     const event = await emergencyRepo.create({
       workerId,

@@ -25,8 +25,9 @@ import {
   requireRole,
   AuthenticatedRequest,
 } from '../middleware/auth.middleware';
-import { healthcareRepo, notificationRepo, userRepo } from '../repositories';
+import { healthcareRepo, notificationRepo } from '../repositories';
 import { PgHealthcareRepository } from '../repositories/pg.repositories';
+import { query } from '../db/pool';
 
 const router = Router();
 
@@ -36,19 +37,21 @@ function isCoordinatorOrAdmin(role: string) {
   return role === 'COORDINATOR' || role === 'ADMIN';
 }
 
-// Notify all coordinators about a new high-priority request
+// Notify all coordinators about a new high-priority request (uses direct SQL)
 async function notifyCoordinators(workerId: string, workerName: string, severity: string, requestId: string) {
   try {
-    // Find all coordinators/admins
-    const users = await userRepo.findAll();
-    const coordinators = users.filter(u => u.role === 'COORDINATOR' || u.role === 'ADMIN');
+    // Use direct SQL to find real coordinators/admins from PostgreSQL
+    const coordinatorsResult = await query(
+      `SELECT id FROM users WHERE role IN ('COORDINATOR', 'ADMIN') AND is_active = TRUE`
+    );
+    const coordinators = coordinatorsResult.rows;
     const isHighPriority = severity === 'HIGH' || severity === 'EMERGENCY';
     for (const coord of coordinators) {
       await notificationRepo.create({
         userId: coord.id,
         type: 'HEALTHCARE_UPDATE',
         category: 'HEALTH',
-        title: isHighPriority ? `🚨 Urgent Healthcare Request` : 'New Healthcare Request',
+        title: isHighPriority ? '🚨 Urgent Healthcare Request' : 'New Healthcare Request',
         message: `${workerName} submitted a ${severity.toLowerCase()} priority healthcare request. Please review.`,
         isRead: false,
         link: `/coordinator/healthcare`,
@@ -114,8 +117,8 @@ router.post('/requests', requireAuth, async (req: Request, res: Response) => {
   const workerId = authReq.user!.userId;
 
   try {
-    const user = await userRepo.findById(workerId);
-    const name = workerName || user?.name || user?.full_name || 'Worker';
+    const userRes = await query(`SELECT full_name FROM users WHERE id = $1`, [workerId]);
+    const name = workerName || userRes.rows[0]?.full_name || 'Worker';
 
     const request = await healthcareRepo.createRequest({
       workerId,
@@ -248,8 +251,8 @@ router.post(
       const existing = await healthcareRepo.findRequestById(req.params.id);
       if (!existing) return res.status(404).json({ success: false, error: 'Request not found' });
 
-      const user = await userRepo.findById(authReq.user!.userId);
-      const authorName = user?.name || user?.full_name || 'Coordinator';
+      const userRes = await query(`SELECT full_name FROM users WHERE id = $1`, [authReq.user!.userId]);
+      const authorName = userRes.rows[0]?.full_name || 'Coordinator';
 
       // PgHealthcareRepository has addNote; dev repo falls back to updating coordinatorNotes
       if ((healthcareRepo as any).addNote) {

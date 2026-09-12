@@ -30,6 +30,7 @@ import { MarketplacePage } from './pages/MarketplacePage';
 import { ListingDetailPage } from './pages/ListingDetailPage';
 import { BuyerRequestsPage } from './pages/BuyerRequestsPage';
 import { SavedListingsPage } from './pages/SavedListingsPage';
+import { MySalesPage } from './pages/MySalesPage';
 
 // Phase 3 — Offers & Transactions
 import { WorkerOffersPage } from './pages/WorkerOffersPage';
@@ -120,7 +121,7 @@ const App: React.FC = () => {
               <Route path="/create-listing"   element={<CreateListingPage />} />
               <Route path="/salt-market"      element={<MarketplacePage />} />
               <Route path="/salt-market/:id"  element={<ListingDetailPage />} />
-              <Route path="/my-sales"         element={<PlaceholderPage titleKey="nav.mySales" phase={2} />} />
+              <Route path="/my-sales"         element={<MySalesPage />} />
 
               {/* Buyer pages — Phase 2 */}
               <Route path="/buyer-requests"   element={<BuyerRequestsPage />} />

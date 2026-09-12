@@ -418,10 +418,62 @@ export const CoordinatorDashboard: React.FC = () => {
         <p className="text-sm text-charcoal-500 mt-0.5">{t('dashboard.coordinatorTitle')}</p>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <ComingSoonCard title={t('nav.support')} phase={3} description="Manage worker support requests" />
-        <ComingSoonCard title={t('nav.healthcare')} phase={3} description="Coordinate healthcare access and camps" />
-        <ComingSoonCard title={t('nav.safety')} phase={3} description="Monitor and respond to safety alerts" />
-        <ComingSoonCard title={t('nav.community')} phase={3} description="Post community notices and updates" />
+        <Link to="/safety" className="card card-body hover:shadow-md transition-shadow group">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-9 h-9 rounded-xl bg-red-50 flex items-center justify-center">
+              <svg className="w-5 h-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold text-charcoal-900">{t('nav.safety')}</h3>
+              <p className="text-xs text-charcoal-500">Safety alerts, SOS &amp; incidents</p>
+            </div>
+          </div>
+          <p className="text-xs text-eucalyptus-700 group-hover:underline">View safety dashboard →</p>
+        </Link>
+        <Link to="/healthcare" className="card card-body hover:shadow-md transition-shadow group">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center">
+              <svg className="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+              </svg>
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold text-charcoal-900">{t('nav.healthcare')}</h3>
+              <p className="text-xs text-charcoal-500">Healthcare requests &amp; camps</p>
+            </div>
+          </div>
+          <p className="text-xs text-eucalyptus-700 group-hover:underline">View healthcare requests →</p>
+        </Link>
+        <Link to="/salt-market" className="card card-body hover:shadow-md transition-shadow group">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-9 h-9 rounded-xl bg-eucalyptus-50 flex items-center justify-center">
+              <svg className="w-5 h-5 text-eucalyptus-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold text-charcoal-900">{t('nav.marketplace')}</h3>
+              <p className="text-xs text-charcoal-500">Monitor marketplace activity</p>
+            </div>
+          </div>
+          <p className="text-xs text-eucalyptus-700 group-hover:underline">View marketplace →</p>
+        </Link>
+        <Link to="/ai-assistant" className="card card-body hover:shadow-md transition-shadow group">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-9 h-9 rounded-xl bg-sage-50 flex items-center justify-center">
+              <svg className="w-5 h-5 text-sage-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+              </svg>
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold text-charcoal-900">{t('nav.aiAssistant')}</h3>
+              <p className="text-xs text-charcoal-500">AI assistance for workers</p>
+            </div>
+          </div>
+          <p className="text-xs text-eucalyptus-700 group-hover:underline">Open AI assistant →</p>
+        </Link>
       </div>
     </div>
   );
