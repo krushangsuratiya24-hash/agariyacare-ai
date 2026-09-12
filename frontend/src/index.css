@@ -123,7 +123,7 @@
 
   .badge-green  { @apply badge bg-eucalyptus-100 text-eucalyptus-800; }
   .badge-sand   { @apply badge bg-sand-100 text-sand-500; }
-  .badge-sage   { @apply badge bg-sage-100 text-sage-700; }
+  .badge-sage   { @apply badge bg-sage-100 text-sage-600; }
   .badge-gray   { @apply badge bg-charcoal-100 text-charcoal-600; }
   .badge-red    { @apply badge bg-red-50 text-red-700; }
 

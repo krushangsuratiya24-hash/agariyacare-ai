@@ -23,6 +23,7 @@
     "src/routes/auth.ts",
     "src/routes/users.ts",
     "src/routes/admin.ts",
+    "src/routes/marketplace.ts",
     "src/controllers/**/*",
     "src/utils/**/*",
     "src/types/index.ts"

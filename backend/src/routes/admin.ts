@@ -7,21 +7,30 @@ const router = Router();
 router.use(authenticate);
 router.use(authorize('ADMIN'));
 
-// List users
+// List users — parameterized role filter (fixes SQL injection from Phase 1)
 router.get('/users', async (req: Request, res: Response) => {
   const page = parseInt((req.query.page as string) || '1');
   const limit = Math.min(parseInt((req.query.limit as string) || '20'), 100);
   const offset = (page - 1) * limit;
   const role = req.query.role as string | undefined;
 
-  const conditions = role ? `WHERE role = '${role}'` : '';
+  const validRoles = ['AGARIYA_WORKER', 'BUYER', 'COORDINATOR', 'ADMIN'];
+  const params: unknown[] = [limit, offset];
+  let where = '';
+  if (role && validRoles.includes(role)) {
+    where = 'WHERE role = $3';
+    params.push(role);
+  }
+
   const result = await query(
     `SELECT id, email, phone, role, full_name, avatar_url, language_pref,
             is_active, onboarding_completed, created_at
-     FROM users ${conditions} ORDER BY created_at DESC LIMIT $1 OFFSET $2`,
-    [limit, offset]
+     FROM users ${where} ORDER BY created_at DESC LIMIT $1 OFFSET $2`,
+    params
   );
-  const count = await query(`SELECT COUNT(*) FROM users ${conditions}`);
+  const countParams = role && validRoles.includes(role) ? [role] : [];
+  const countWhere  = role && validRoles.includes(role) ? 'WHERE role = $1' : '';
+  const count = await query(`SELECT COUNT(*) FROM users ${countWhere}`, countParams);
   res.json({
     success: true,
     data: {

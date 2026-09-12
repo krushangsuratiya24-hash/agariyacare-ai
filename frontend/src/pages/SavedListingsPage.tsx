@@ -1,89 +1,96 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { Bookmark, BookmarkX, MapPin } from 'lucide-react';
-import { useLanguage } from '../contexts/LanguageContext';
-import { marketplaceApi } from '../services/api';
-import { SaltType, SaltGrade } from '../types';
-import { EmptyState, Spinner } from '../components/UI';
+import toast from 'react-hot-toast';
+import { savedListingService, SaltListing } from '../services/marketplaceService';
+import { SkeletonCard, EmptyState } from '../components/ui/index';
 
-export default function SavedListingsPage() {
-  const { language } = useLanguage();
-  const gu = language === 'gu';
+function fmt(n: number | string | null | undefined, decimals = 0): string {
+  if (n === null || n === undefined) return '—';
+  return Number(n).toLocaleString('en-IN', { maximumFractionDigits: decimals });
+}
 
-  const [saved, setSaved] = useState<any[]>([]);
-  const [saltTypes, setSaltTypes] = useState<SaltType[]>([]);
-  const [saltGrades, setSaltGrades] = useState<SaltGrade[]>([]);
+export const SavedListingsPage: React.FC = () => {
+  const { t } = useTranslation();
+  const [listings, setListings] = useState<(SaltListing & { saved_at?: string })[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => { load(); }, []);
-
-  async function load() {
+  const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [savedRes, typesRes, gradesRes] = await Promise.allSettled([
-        marketplaceApi.getSaved(),
-        marketplaceApi.getSaltTypes(),
-        marketplaceApi.getSaltGrades(),
-      ]);
-      if (savedRes.status === 'fulfilled') setSaved(savedRes.value.data ?? []);
-      if (typesRes.status === 'fulfilled') setSaltTypes(typesRes.value.data ?? []);
-      if (gradesRes.status === 'fulfilled') setSaltGrades(gradesRes.value.data ?? []);
+      const res = await savedListingService.getAll();
+      if (res.success && res.data) setListings(res.data as (SaltListing & { saved_at?: string })[]);
     } finally {
       setLoading(false);
     }
-  }
+  }, []);
 
-  async function unsave(listingId: string) {
-    await marketplaceApi.unsaveListing(listingId);
-    setSaved(prev => prev.filter(s => (s.listingId ?? s.id) !== listingId));
-  }
+  useEffect(() => { load(); }, [load]);
 
-  if (loading) return <div className="flex items-center justify-center h-64"><Spinner size={32} /></div>;
+  const handleRemove = async (id: string) => {
+    try {
+      await savedListingService.unsave(id);
+      setListings(prev => prev.filter(l => l.id !== id));
+      toast.success(t('marketplace.unsavedSuccess'));
+    } catch {
+      toast.error(t('common.error'));
+    }
+  };
 
   return (
-    <div className="max-w-3xl mx-auto space-y-5">
-      <div>
-        <p className="section-label mb-0.5">{gu ? 'ĺ.' : 'Bookmarks'}</p>
-        <h1 className="text-2xl font-bold text-charcoal-900">{gu ? 'ĺ.' : 'Saved Listings'}</h1>
-        <p className="text-sm text-charcoal-500 mt-0.5">{saved.length} {gu ? 'ĺ.' : 'saved listing(s)'}</p>
+    <div className="max-w-4xl mx-auto">
+      <div className="mb-6">
+        <h1 className="text-2xl font-semibold text-charcoal-900">{t('savedListings.title')}</h1>
+        <p className="text-sm text-charcoal-500 mt-0.5">{t('savedListings.subtitle')}</p>
       </div>
 
-      {saved.length === 0 ? (
+      {loading ? (
+        <div className="space-y-3">{[1, 2, 3].map(i => <SkeletonCard key={i} lines={3} />)}</div>
+      ) : listings.length === 0 ? (
         <EmptyState
-          message={gu ? 'ĺ.' : 'No saved listings. Browse the market and bookmark listings you\'re interested in.'}
-          action={<Link to="/market" className="btn-primary mt-2 inline-block">{gu ? 'ĺ.' : 'Browse Market'}</Link>}
+          title={t('savedListings.noSaved')}
+          description={t('savedListings.noSavedDesc')}
+          action={{ label: t('nav.saltMarket'), onClick: () => window.location.href = '/salt-market' }}
+          icon={<svg className="w-7 h-7 text-charcoal-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" /></svg>}
         />
-      ) : saved.map((s: any) => {
-        const listing = s.listing ?? s;
-        const type = saltTypes.find(t => t.id === listing.saltTypeId);
-        const grade = saltGrades.find(g => g.id === listing.saltGradeId);
-        const listingId = s.listingId ?? s.id;
-        return (
-          <div key={s.id} className="card flex items-start gap-4">
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-1">
-                <span className="font-semibold text-charcoal-900">{type?.name ?? 'Salt'} — {grade?.name ?? ''}</span>
-                <span className="badge badge-active text-xs">{listing.status}</span>
-              </div>
-              <div className="flex flex-wrap gap-4 text-sm text-charcoal-600">
-                <span className="text-lg font-bold text-charcoal-900">₹{listing.askingPricePerKg}/kg</span>
-                <span>{listing.quantityKg?.toLocaleString()} kg</span>
-                {listing.pickupDistrict && (
-                  <span className="flex items-center gap-1 text-charcoal-400"><MapPin size={12} />{listing.pickupDistrict}</span>
-                )}
+      ) : (
+        <div className="space-y-3">
+          {listings.map(listing => (
+            <div key={listing.id} className="card card-body">
+              <div className="flex items-start gap-4">
+                <div className="flex-1 min-w-0">
+                  <div className="flex flex-wrap items-center gap-2 mb-1">
+                    <h3 className="text-base font-semibold text-charcoal-900">{listing.salt_type}</h3>
+                    {listing.quality_grade && <span className="badge badge-sage text-xs">{listing.quality_grade}</span>}
+                    {listing.status !== 'ACTIVE' && (
+                      <span className="badge badge-gray text-xs">{listing.status}</span>
+                    )}
+                  </div>
+                  <div className="flex flex-wrap gap-3 text-xs text-charcoal-500 mt-1">
+                    <span className="font-semibold text-eucalyptus-800">₹{fmt(Number(listing.price_per_kg), 2)}/kg</span>
+                    <span>{fmt(Number(listing.quantity_kg))} kg available</span>
+                    <span>📍 {listing.location}</span>
+                    {listing.seller_name && <span>by {listing.seller_name}</span>}
+                  </div>
+                  {listing.saved_at && (
+                    <p className="text-xs text-charcoal-400 mt-1">
+                      {t('savedListings.savedOn')} {new Date(listing.saved_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                    </p>
+                  )}
+                </div>
+                <div className="flex flex-col gap-2 flex-shrink-0">
+                  <Link to={`/salt-market/${listing.id}`} className="btn-primary btn-sm">
+                    {t('savedListings.viewListing')}
+                  </Link>
+                  <button onClick={() => handleRemove(listing.id)} className="btn-secondary btn-sm text-charcoal-500">
+                    {t('savedListings.remove')}
+                  </button>
+                </div>
               </div>
             </div>
-            <div className="flex gap-2">
-              <Link to={`/market/${listingId}`} className="btn-primary text-xs px-3 py-1.5">
-                {gu ? 'ĺ.' : 'View & Offer'}
-              </Link>
-              <button onClick={() => unsave(listingId)} className="btn-secondary text-xs px-2 py-1.5">
-                <BookmarkX size={14} />
-              </button>
-            </div>
-          </div>
-        );
-      })}
+          ))}
+        </div>
+      )}
     </div>
   );
-}
+};

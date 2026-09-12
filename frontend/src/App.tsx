@@ -23,6 +23,14 @@ import { ProfilePage } from './components/profile/ProfilePage';
 // Dashboard
 import { DashboardPage } from './pages/shared/DashboardPage';
 
+// Phase 2 — Marketplace pages
+import { MySaltPage } from './pages/MySaltPage';
+import { CreateListingPage } from './pages/CreateListingPage';
+import { MarketplacePage } from './pages/MarketplacePage';
+import { ListingDetailPage } from './pages/ListingDetailPage';
+import { BuyerRequestsPage } from './pages/BuyerRequestsPage';
+import { SavedListingsPage } from './pages/SavedListingsPage';
+
 // Placeholder pages
 import { PlaceholderPage } from './pages/shared/PlaceholderPage';
 
@@ -87,16 +95,18 @@ const App: React.FC = () => {
               {/* Profile */}
               <Route path="/profile" element={<ProfilePage />} />
 
-              {/* Worker pages (Phase 2+) */}
-              <Route path="/my-salt"     element={<PlaceholderPage titleKey="nav.mySalt"     phase={2} />} />
-              <Route path="/salt-market" element={<PlaceholderPage titleKey="nav.saltMarket" phase={2} />} />
-              <Route path="/my-offers"   element={<PlaceholderPage titleKey="nav.myOffers"   phase={2} />} />
-              <Route path="/my-sales"    element={<PlaceholderPage titleKey="nav.mySales"    phase={2} />} />
+              {/* Worker pages — Phase 2 */}
+              <Route path="/my-salt"          element={<MySaltPage />} />
+              <Route path="/create-listing"   element={<CreateListingPage />} />
+              <Route path="/salt-market"      element={<MarketplacePage />} />
+              <Route path="/salt-market/:id"  element={<ListingDetailPage />} />
+              <Route path="/my-offers"        element={<PlaceholderPage titleKey="nav.myOffers" phase={2} />} />
+              <Route path="/my-sales"         element={<PlaceholderPage titleKey="nav.mySales"  phase={2} />} />
 
-              {/* Buyer pages (Phase 2+) */}
-              <Route path="/buyer-requests" element={<PlaceholderPage titleKey="nav.buyerRequests" phase={2} />} />
-              <Route path="/purchases"      element={<PlaceholderPage titleKey="nav.purchases"     phase={2} />} />
-              <Route path="/saved-listings" element={<PlaceholderPage titleKey="nav.savedListings" phase={2} />} />
+              {/* Buyer pages — Phase 2 */}
+              <Route path="/buyer-requests" element={<BuyerRequestsPage />} />
+              <Route path="/purchases"      element={<PlaceholderPage titleKey="nav.purchases" phase={2} />} />
+              <Route path="/saved-listings" element={<SavedListingsPage />} />
 
               {/* Phase 3 */}
               <Route path="/healthcare" element={<PlaceholderPage titleKey="nav.healthcare" phase={3} />} />

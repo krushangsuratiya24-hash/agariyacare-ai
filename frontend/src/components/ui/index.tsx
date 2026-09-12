@@ -126,7 +126,8 @@ export const Alert: React.FC<{
   type: 'success' | 'error' | 'warning' | 'info';
   message: string;
   onClose?: () => void;
-}> = ({ type, message, onClose }) => {
+  className?: string;
+}> = ({ type, message, onClose, className = '' }) => {
   const styles = {
     success: 'bg-eucalyptus-50 border-eucalyptus-200 text-eucalyptus-800',
     error:   'bg-red-50 border-red-200 text-red-800',
@@ -134,7 +135,7 @@ export const Alert: React.FC<{
     info:    'bg-ivory-100 border-ivory-300 text-charcoal-700',
   };
   return (
-    <div className={`flex items-start gap-3 p-3 rounded-xl border text-sm ${styles[type]}`}>
+    <div className={`flex items-start gap-3 p-3 rounded-xl border text-sm ${styles[type]} ${className}`}>
       <span className="flex-1">{message}</span>
       {onClose && (
         <button onClick={onClose} className="opacity-60 hover:opacity-100 transition-opacity ml-1">

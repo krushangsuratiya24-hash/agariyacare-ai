@@ -11,6 +11,7 @@ dotenv.config();
 import authRoutes from './routes/auth';
 import userRoutes from './routes/users';
 import adminRoutes from './routes/admin';
+import marketplaceRoutes from './routes/marketplace';
 import { errorHandler, notFound } from './middleware/errorHandler';
 
 const app = express();
@@ -61,6 +62,7 @@ app.use('/uploads', express.static(path.join(process.cwd(), uploadDir)));
 app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/marketplace', marketplaceRoutes);
 
 // Health check
 app.get('/api/health', (_req, res) => {
