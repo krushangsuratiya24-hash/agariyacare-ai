@@ -81,7 +81,7 @@ export default function NotificationsPage() {
                   {!n.isRead && <span className="w-2 h-2 bg-eucalyptus-500 rounded-full flex-shrink-0 mt-1.5" />}
                 </div>
                 <p className="text-sm text-charcoal-500 mt-0.5">{n.message}</p>
-                <p className="text-xs text-charcoal-400 mt-1">{new Date(n.createdAt).toLocaleString('en-IN')}</p>
+                <p className="text-xs text-charcoal-400 mt-1">{n.createdAt ? new Date(n.createdAt as string).toLocaleString('en-IN') : ''}</p>
               </div>
             </div>
           ))}

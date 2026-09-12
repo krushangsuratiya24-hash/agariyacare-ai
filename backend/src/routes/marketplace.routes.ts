@@ -193,7 +193,7 @@ router.put('/listings/:id', requireAuth, async (req: Request, res: Response) => 
     const authReq = req as AuthenticatedRequest;
     const listing = await saltListingRepo.findById(req.params.id);
     if (!listing) return res.status(404).json({ success: false, error: 'Not found' });
-    if (listing.workerId !== authReq.user!.userId && authReq.user!.role !== 'admin') {
+    if (listing.workerId !== authReq.user!.userId && authReq.user!.role !== 'ADMIN') {
       return res.status(403).json({ success: false, error: 'Access denied' });
     }
     const updated = await saltListingRepo.update(req.params.id, req.body);
@@ -270,7 +270,7 @@ router.put('/buyer-requests/:id', requireAuth, async (req: Request, res: Respons
     const authReq = req as AuthenticatedRequest;
     const existing = await buyerRequestRepo.findById(req.params.id);
     if (!existing) return res.status(404).json({ success: false, error: 'Not found' });
-    if (existing.buyerId !== authReq.user!.userId && authReq.user!.role !== 'admin') {
+    if (existing.buyerId !== authReq.user!.userId && authReq.user!.role !== 'ADMIN') {
       return res.status(403).json({ success: false, error: 'Access denied' });
     }
     const updated = await buyerRequestRepo.update(req.params.id, req.body);
@@ -325,7 +325,7 @@ router.get('/market-prices', async (req: Request, res: Response) => {
         saltTypeId: grade.saltTypeId,
         referenceMin: grade.typicalPriceRangeMin,
         referenceMax: grade.typicalPriceRangeMax,
-        referenceMid: ((grade.typicalPriceRangeMin + grade.typicalPriceRangeMax) / 2).toFixed(2),
+        referenceMid: (((grade.typicalPriceRangeMin ?? 0) + (grade.typicalPriceRangeMax ?? 0)) / 2).toFixed(2),
         dataStatus: 'INDICATIVE',
         source: 'Platform Reference Data',
         note: 'These are indicative reference values. Actual market prices may vary.',
@@ -346,7 +346,7 @@ router.get('/matches', requireAuth, async (req: Request, res: Response) => {
     const userId = authReq.user!.userId;
     const role = authReq.user!.role;
 
-    if (role === 'worker') {
+    if (role === 'AGARIYA_WORKER' || (role as string) === 'worker') {
       // Find buyer requests matching worker's inventory
       const [inventory, buyerRequests] = await Promise.all([
         saltInventoryRepo.findByWorkerId(userId),
@@ -378,7 +378,7 @@ router.get('/matches', requireAuth, async (req: Request, res: Response) => {
       }).filter(Boolean);
 
       res.json({ success: true, data: matches });
-    } else if (role === 'buyer') {
+    } else if (role === 'BUYER' || (role as string) === 'buyer') {
       // Find listings matching buyer's requests
       const [buyerRequests, listings] = await Promise.all([
         buyerRequestRepo.findByBuyerId(userId),

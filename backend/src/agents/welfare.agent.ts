@@ -142,18 +142,18 @@ Worker: ${context.worker ? `${context.worker.name}, Age ${context.worker.age}, $
 
     const maxScore = 3;
     const result: WelfareMatchResult = score >= maxScore * 0.8
-      ? 'HIGHLY_RELEVANT'
+      ? 'LIKELY_ELIGIBLE'
       : score >= maxScore * 0.5
-        ? 'POTENTIALLY_ELIGIBLE'
+        ? 'POSSIBLY_ELIGIBLE'
         : missingInfo.length > 0 && score > 0
-          ? 'MORE_INFO_REQUIRED'
+          ? 'NEEDS_VERIFICATION'
           : 'NOT_MATCHING';
 
     const explanation = matchedCriteria.length > 0
       ? `You match: ${matchedCriteria.join(', ')}.`
       : 'You may not currently meet the key criteria.';
 
-    const nextStep = result === 'HIGHLY_RELEVANT' || result === 'POTENTIALLY_ELIGIBLE'
+    const nextStep = result === 'LIKELY_ELIGIBLE' || result === 'POSSIBLY_ELIGIBLE'
       ? `Apply at: ${scheme.applicationMethod}`
       : missingInfo.length > 0
         ? `To become eligible: ${missingInfo[0]}`
@@ -162,6 +162,7 @@ Worker: ${context.worker ? `${context.worker.name}, Age ${context.worker.age}, $
     return {
       scheme,
       result,
+      score,
       matchedCriteria,
       missingInfo,
       explanation,

@@ -42,12 +42,14 @@ router.post('/compare', async (req, res) => {
 
   // Use Grade A Common Salt as reference
   const gradeA = latest.find(p => p.qualityGrade === 'Grade A' && p.saltType === 'Common Salt') ?? latest[0];
-  const referencePrice = gradeA.pricePerTonne;
+  const referencePrice = gradeA.pricePerTonne ?? gradeA.pricePerKg ?? 0;
 
   const offerValue = quantity * buyerOffer;
   const referenceValue = quantity * referencePrice;
   const difference = offerValue - referenceValue;
-  const percentageDifference = ((buyerOffer - referencePrice) / referencePrice) * 100;
+  const percentageDifference = referencePrice > 0
+    ? ((buyerOffer - referencePrice) / referencePrice) * 100
+    : 0;
 
   const comparison: PriceComparison = {
     quantity,
@@ -59,9 +61,7 @@ router.post('/compare', async (req, res) => {
     percentageDifference: Math.round(percentageDifference * 10) / 10,
     assessment: percentageDifference >= -5
       ? 'FAIR'
-      : percentageDifference >= -15
-        ? 'BELOW_MARKET'
-        : 'BELOW_MARKET',
+      : 'BELOW_MARKET',
   };
 
   res.json({

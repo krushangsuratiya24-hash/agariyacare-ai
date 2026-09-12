@@ -35,12 +35,14 @@ router.get('/safety', async (req, res) => {
   const readings = await safetyRepo.findReadings();
 
   const byType = incidents.reduce((acc: Record<string, number>, i) => {
-    acc[i.type] = (acc[i.type] || 0) + 1;
+    const t = i.type ?? 'UNKNOWN';
+    acc[t] = (acc[t] || 0) + 1;
     return acc;
   }, {});
 
   const byLevel = readings.reduce((acc: Record<string, number>, r) => {
-    acc[r.safetyLevel] = (acc[r.safetyLevel] || 0) + 1;
+    const l = r.safetyLevel ?? 'UNKNOWN';
+    acc[l] = (acc[l] || 0) + 1;
     return acc;
   }, {});
 
@@ -52,12 +54,14 @@ router.get('/healthcare', async (req, res) => {
   const requests = await healthcareRepo.findAllRequests();
 
   const byStatus = requests.reduce((acc: Record<string, number>, r) => {
-    acc[r.status] = (acc[r.status] || 0) + 1;
+    const s = r.status ?? 'UNKNOWN';
+    acc[s] = (acc[s] || 0) + 1;
     return acc;
   }, {});
 
   const bySeverity = requests.reduce((acc: Record<string, number>, r) => {
-    acc[r.severity] = (acc[r.severity] || 0) + 1;
+    const sev = r.severity ?? 'UNKNOWN';
+    acc[sev] = (acc[sev] || 0) + 1;
     return acc;
   }, {});
 

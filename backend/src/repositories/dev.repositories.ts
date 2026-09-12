@@ -765,7 +765,7 @@ export class DevBuyerRequestRepository implements BuyerRequestRepository {
 
   private async populate(req: BuyerRequest): Promise<BuyerRequest> {
     const [saltType, saltGrade, buyerUser, buyerProfile] = await Promise.all([
-      this.classRepo.findTypeById(req.saltTypeId),
+      req.saltTypeId ? this.classRepo.findTypeById(req.saltTypeId) : Promise.resolve(null),
       req.saltGradeId ? this.classRepo.findGradeById(req.saltGradeId) : Promise.resolve(null),
       this.userRepo.findById(req.buyerId),
       this.buyerProfileRepo.findByUserId(req.buyerId),

@@ -1,7 +1,7 @@
 import { Agent, AgentContext, AgentResponse } from './base.agent';
 import { getAIProvider } from '../providers';
 import { safetyRepo } from '../repositories';
-import { SafetyReading } from '../types';
+import { SafetyReading, SafetyLevel } from '../types';
 
 const SYSTEM_PROMPT = `You are the Worker Safety Monitoring Agent for AgariyaCare AI, dedicated to protecting Agariya salt pan workers in the Little Rann of Kutch from environmental and occupational hazards.
 
@@ -108,10 +108,10 @@ ${alertInfo || 'No active alerts'}`;
     let baseLevel: SafetyLevel =
       hi >= 41 ? 'EMERGENCY' :
       hi >= 32 ? 'HIGH_RISK' :
-      hi >= 27 ? 'CAUTION' : 'NORMAL';
+      hi >= 27 ? 'CAUTION' : 'SAFE';
 
     // Escalation factors
-    const levels: SafetyLevel[] = ['NORMAL', 'CAUTION', 'HIGH_RISK', 'EMERGENCY'];
+    const levels: SafetyLevel[] = ['SAFE', 'CAUTION', 'HIGH_RISK', 'EMERGENCY'];
     let levelIdx = levels.indexOf(baseLevel);
 
     if (waterAvailability === 'NONE') levelIdx = Math.min(levelIdx + 2, 3);

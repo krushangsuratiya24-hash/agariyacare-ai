@@ -15,6 +15,16 @@ import adminRoutes from './routes/admin';
 import marketplaceRoutes from './routes/marketplace';
 import offersRoutes from './routes/offers';
 import aiRoutes from './routes/ai.routes';
+import marketplaceV2Routes from './routes/marketplace.routes';
+import offersV2Routes from './routes/offers.routes';
+import notificationsRoutes from './routes/notifications.routes';
+import healthcareRoutes from './routes/healthcare.routes';
+import welfareRoutes from './routes/welfare.routes';
+import safetyRoutes from './routes/safety.routes';
+import communityRoutes from './routes/community.routes';
+import marketRoutes from './routes/market.routes';
+import analyticsRoutes from './routes/analytics.routes';
+import workersRoutes from './routes/workers.routes';
 import { errorHandler, notFound } from './middleware/errorHandler';
 
 const app = express();
@@ -83,6 +93,18 @@ app.use('/api/offers', offersRoutes);
 
 // Phase 4 — AI assistant
 app.use('/api/ai', aiLimiter, aiRoutes);
+
+// Phase 4 — additional routes (healthcare, welfare, safety, community, etc.)
+app.use('/api/marketplace/v2', marketplaceV2Routes);
+app.use('/api/offers/v2', offersV2Routes);
+app.use('/api/notifications', notificationsRoutes);
+app.use('/api/healthcare', healthcareRoutes);
+app.use('/api/welfare', welfareRoutes);
+app.use('/api/safety', safetyRoutes);
+app.use('/api/community', communityRoutes);
+app.use('/api/market', marketRoutes);
+app.use('/api/analytics', analyticsRoutes);
+app.use('/api/workers', workersRoutes);
 
 // Health check
 app.get('/api/health', (_req, res) => {

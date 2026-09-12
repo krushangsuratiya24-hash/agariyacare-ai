@@ -1,7 +1,5 @@
-import { Router, Request, Response } from 'express';
+import { Router } from 'express';
 import { healthcareRepo, notificationRepo } from '../repositories';
-import { HealthcareRequest } from '../types';
-import { v4 as uuidv4 } from 'uuid';
 
 const router = Router();
 

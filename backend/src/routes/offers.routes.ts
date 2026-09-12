@@ -17,7 +17,7 @@ router.get('/my', requireAuth, async (req: Request, res: Response) => {
     const authReq = req as AuthenticatedRequest;
     const { role, userId } = authReq.user!;
 
-    const offers = role === 'buyer'
+    const offers = role === 'BUYER' || (role as string) === 'buyer'
       ? await offerRepo.findByBuyerId(userId)
       : await offerRepo.findByWorkerId(userId);
 
@@ -36,7 +36,7 @@ router.get('/:id', requireAuth, async (req: Request, res: Response) => {
 
     // Only buyer or worker on the offer can view
     const { userId } = authReq.user!;
-    if (offer.buyerId !== userId && offer.workerId !== userId && authReq.user!.role !== 'admin') {
+    if (offer.buyerId !== userId && offer.workerId !== userId && authReq.user!.role !== 'ADMIN' && (authReq.user!.role as string) !== 'admin') {
       return res.status(403).json({ success: false, error: 'Access denied' });
     }
 
@@ -54,7 +54,7 @@ router.get('/listing/:listingId', requireAuth, async (req: Request, res: Respons
     const listing = await saltListingRepo.findById(req.params.listingId);
     if (!listing) return res.status(404).json({ success: false, error: 'Listing not found' });
 
-    if (listing.workerId !== authReq.user!.userId && authReq.user!.role !== 'admin') {
+    if (listing.workerId !== authReq.user!.userId && authReq.user!.role !== 'ADMIN' && (authReq.user!.role as string) !== 'admin') {
       return res.status(403).json({ success: false, error: 'Access denied' });
     }
 
@@ -69,7 +69,7 @@ router.get('/listing/:listingId', requireAuth, async (req: Request, res: Respons
 router.post('/', requireAuth, async (req: Request, res: Response) => {
   try {
     const authReq = req as AuthenticatedRequest;
-    if (authReq.user!.role !== 'buyer') {
+    if (authReq.user!.role !== 'BUYER' && (authReq.user!.role as string) !== 'buyer') {
       return res.status(403).json({ success: false, error: 'Only buyers can make offers' });
     }
 
@@ -109,8 +109,8 @@ router.post('/', requireAuth, async (req: Request, res: Response) => {
       message,
     });
 
-    // Update listing status
-    await saltListingRepo.update(listingId, { status: 'UNDER_OFFER' });
+    // Listing remains ACTIVE while offer is pending
+    // (will be set to SOLD only when offer is accepted)
 
     // Notify worker
     await notificationRepo.create({
@@ -226,7 +226,7 @@ router.post('/:id/accept', requireAuth, async (req: Request, res: Response) => {
       quantityKg: offer.quantityKg,
       agreedPricePerKg: offer.pricePerKg,
       totalAmount: offer.totalAmount,
-      status: 'CONFIRMED',
+      status: 'PENDING_PAYMENT',
     });
 
     // Update listing status to SOLD
@@ -324,7 +324,7 @@ router.get('/transactions/my', requireAuth, async (req: Request, res: Response) 
   try {
     const authReq = req as AuthenticatedRequest;
     const { userId, role } = authReq.user!;
-    const transactions = role === 'buyer'
+    const transactions = (role === 'BUYER' || (role as string) === 'buyer')
       ? await transactionRepo.findByBuyerId(userId)
       : await transactionRepo.findBySellerId(userId);
     res.json({ success: true, data: transactions });
@@ -340,7 +340,7 @@ router.get('/transactions/:id', requireAuth, async (req: Request, res: Response)
     if (!tx) return res.status(404).json({ success: false, error: 'Transaction not found' });
 
     const { userId, role } = authReq.user!;
-    if (tx.sellerId !== userId && tx.buyerId !== userId && role !== 'admin') {
+    if (tx.sellerId !== userId && tx.buyerId !== userId && role !== 'ADMIN' && (role as string) !== 'admin') {
       return res.status(403).json({ success: false, error: 'Access denied' });
     }
 

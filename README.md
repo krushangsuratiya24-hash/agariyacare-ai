@@ -1,8 +1,20 @@
-# AgariyaCare AI — Phase 1
+# AgariyaCare AI — Phase 4 Complete
 
 > **"Sell Better. Work Safer. Live Better."**
 >
 > A platform for Agariya salt-pan workers in the Little Rann of Kutch, Gujarat.
+> Powered by **IBM Granite AI** (via IBM watsonx).
+
+---
+
+## Phases Completed
+
+| Phase | Description | Status |
+|-------|-------------|--------|
+| Phase 1 | Authentication, PostgreSQL, RBAC, profiles, onboarding, i18n | ✅ Complete |
+| Phase 2 | Real Salt Marketplace (inventory, listings, buyer requests) | ✅ Complete |
+| Phase 3 | Offers, Negotiation & Transactions | ✅ Complete |
+| Phase 4 | IBM Granite AI integration, Healthcare, Safety, Welfare, Community, Analytics | ✅ Complete |
 
 ---
 
@@ -11,70 +23,70 @@
 ```
 agariyacare/
 ├── backend/          # Node.js + Express + TypeScript API
-│   ├── src/
-│   │   ├── index.ts           # App entry, middleware, routes
-│   │   ├── db/
-│   │   │   ├── pool.ts        # PostgreSQL connection pool
-│   │   │   └── migrate.ts     # Schema migrations (run once)
-│   │   ├── middleware/
-│   │   │   ├── auth.ts        # JWT authentication + role authorization
-│   │   │   ├── upload.ts      # Multer avatar upload
-│   │   │   └── errorHandler.ts
-│   │   ├── routes/
-│   │   │   ├── auth.ts        # /api/auth/*
-│   │   │   ├── users.ts       # /api/users/*
-│   │   │   └── admin.ts       # /api/admin/*
-│   │   ├── controllers/
-│   │   │   ├── authController.ts
-│   │   │   └── userController.ts
-│   │   ├── utils/jwt.ts
-│   │   └── types/index.ts
-│   └── uploads/avatars/       # Persistent avatar storage
+│   └── src/
+│       ├── index.ts              # App entry, middleware, all routes
+│       ├── agents/               # AI agents (marketplace, healthcare, welfare, safety, community, salt-price)
+│       │   └── orchestrator.ts   # Intent classification + agent routing
+│       ├── providers/ai/
+│       │   ├── granite.provider.ts     # IBM Granite via watsonx (production)
+│       │   └── development.provider.ts # Fallback dev provider
+│       ├── repositories/         # Data access (dev in-memory or PostgreSQL)
+│       ├── routes/               # Express route handlers (17 route files)
+│       ├── db/migrations/        # Incremental SQL migrations (007–009)
+│       ├── middleware/auth.middleware.ts  # JWT authentication
+│       └── types/index.ts        # Shared TypeScript types
 │
 └── frontend/         # React + TypeScript + Vite + Tailwind
     └── src/
-        ├── App.tsx             # Router + route guards
-        ├── i18n/               # English + Gujarati translations
-        ├── context/authStore.ts # Zustand auth state
-        ├── services/           # API service layer
-        ├── components/
-        │   ├── ui/             # Reusable UI components
-        │   ├── auth/           # Login, Signup, Guards
-        │   ├── layout/         # AppLayout, Sidebar, TopNav, BottomNav
-        │   ├── onboarding/     # Onboarding flow
-        │   └── profile/        # Profile edit page
-        └── pages/shared/       # Dashboard, PlaceholderPage
+        ├── pages/AIAssistantPage.tsx   # AI chat UI with conversation history
+        ├── services/api.ts             # Full API client (auth, ai, marketplace, offers, notifications, healthcare, welfare, safety, community, market, analytics)
+        └── i18n/locales/               # English + Gujarati translations
 ```
+
+---
+
+## IBM Granite AI Integration
+
+The AI Assistant uses **IBM Granite** (via IBM watsonx) as the AI model.
+
+### How it works
+
+1. User sends a message in the frontend AI Assistant (`/ai`)
+2. Frontend calls `POST /api/ai/chat` with the message, conversation history, and language
+3. Backend **orchestrator** classifies intent → routes to the appropriate agent
+4. Agent fetches real database context (inventory, offers, etc.) and calls `provider.chat()`
+5. Provider sends the system prompt + context + message to **IBM Granite** (or fallback dev provider)
+6. Response is returned to the frontend and persisted to PostgreSQL (for authenticated users)
+
+### Provider selection
+
+| Condition | Provider used |
+|-----------|---------------|
+| `IBM_WATSONX_API_KEY` + `IBM_WATSONX_PROJECT_ID` set | IBM Granite (ibm/granite-13b-chat-v2) |
+| Credentials not set | Development AI fallback (context-aware, not real AI) |
+
+### AI Agents
+
+| Agent | Handles |
+|-------|---------|
+| `MarketplaceAgent` | Inventory, listings, offers, sales, earnings |
+| `HealthcareAgent` | Symptoms, health camps, medical requests |
+| `WelfareAgent` | Government scheme matching, eligibility |
+| `SafetyAgent` | Heat risk assessment, safety levels, incident reporting |
+| `CommunityAgent` | Notices, support requests |
+| `SaltPriceAgent` | Market prices, price trends |
 
 ---
 
 ## Database
 
-### Tables Created (Phase 1)
-| Table | Purpose |
-|-------|---------|
-| `users` | Core user accounts with roles |
-| `worker_profiles` | Agariya worker details |
-| `buyer_profiles` | Buyer/company details |
-| `notifications` | In-app notifications |
-| `audit_logs` | Login/logout/profile audit trail |
-| `schema_migrations` | Migration tracking |
+### Tables (PostgreSQL)
 
-### Stub Tables (Phase 2+, created in migration)
-`salt_inventory`, `salt_listings`, `buyer_requests`, `offers`, `transactions`,
-`market_prices`, `chat_conversations`, `chat_messages`, `health_requests`,
-`safety_records`, `welfare_schemes`, `community_posts`
-
----
-
-## Authentication
-
-- **JWT** tokens stored in **HttpOnly cookies** (+ returned in body for clients)
-- **bcrypt** password hashing (cost factor 12)
-- **Rate limiting** on auth routes (20 req/15min)
-- **Role-based authorization** middleware
-- Session persistence via cookie + Zustand `persist`
-- Audit logging for login/logout/signup/profile changes
+| Migration | Tables |
+|-----------|--------|
+| 007 | `salt_types`, `salt_grades`, `salt_inventory`, `salt_listings`, `buyer_requests`, `saved_listings`, `market_prices` |
+| 008 | `offers`, `offer_history`, `transactions` |
+| 009 (Phase 4) | `ai_conversations`, `ai_messages` |
 
 ---
 
@@ -89,57 +101,28 @@ agariyacare/
 
 ---
 
-## Pages Created (Phase 1)
-
-| Page | Path | Status |
-|------|------|--------|
-| Login | `/login` | ✅ Full |
-| Signup | `/signup` | ✅ Full |
-| Onboarding | `/onboarding` | ✅ Full |
-| Dashboard | `/dashboard` | ✅ Full (empty states) |
-| Profile | `/profile` | ✅ Full (edit + avatar) |
-| My Salt | `/my-salt` | Phase 2 placeholder |
-| Salt Market | `/salt-market` | Phase 2 placeholder |
-| My Offers | `/my-offers` | Phase 2 placeholder |
-| Healthcare | `/healthcare` | Phase 3 placeholder |
-| Safety | `/safety` | Phase 3 placeholder |
-| Welfare | `/welfare` | Phase 3 placeholder |
-| Community | `/community` | Phase 3 placeholder |
-| AI Assistant | `/ai` | Phase 4 placeholder |
-| Admin Users | `/admin/users` | Phase 1 (basic list) |
-
----
-
 ## How to Run
 
 ### Prerequisites
 - Node.js 18+
-- PostgreSQL 14+ running locally
+- PostgreSQL 14+ (optional — app works without it using dev repositories)
 
-### 1. Database Setup
-
-Create database:
-```sql
-CREATE DATABASE agariyacare;
-```
-
-### 2. Backend
+### 1. Backend
 
 ```bash
-cd agariyacare/backend
+cd backend
 cp .env.example .env
-# Edit .env with your DATABASE_URL and secrets
+# Edit .env — set DATABASE_URL, JWT_SECRET, and optionally IBM_WATSONX_API_KEY
 npm install
-npm run migrate     # Run once to create all tables
-npm run dev         # Start API server on :5000
+npm run dev         # Starts API server on :5000
 ```
 
-### 3. Frontend
+### 2. Frontend
 
 ```bash
-cd agariyacare/frontend
+cd frontend
 npm install
-npm run dev         # Start Vite dev server on :5173
+npm run dev         # Starts Vite dev server on :5173
 ```
 
 Open http://localhost:5173
@@ -148,53 +131,84 @@ Open http://localhost:5173
 
 ## Environment Variables (Backend)
 
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `PORT` | API port | `5000` |
-| `DATABASE_URL` | PostgreSQL connection string | `postgresql://user:pass@localhost:5432/agariyacare` |
-| `JWT_SECRET` | JWT signing secret (min 32 chars) | `your-secret-here` |
-| `JWT_EXPIRES_IN` | Token expiry | `7d` |
-| `COOKIE_SECRET` | Cookie signing secret | `your-cookie-secret` |
-| `FRONTEND_URL` | CORS origin | `http://localhost:5173` |
-| `UPLOAD_DIR` | Upload directory | `uploads` |
-| `MAX_FILE_SIZE` | Max avatar file size (bytes) | `5242880` (5MB) |
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `PORT` | No | API port (default: `5000`) |
+| `DATABASE_URL` | No | PostgreSQL connection string — if omitted, uses in-memory dev repos |
+| `JWT_SECRET` | Yes | JWT signing secret (min 32 chars) |
+| `COOKIE_SECRET` | No | Cookie signing secret |
+| `FRONTEND_URL` | No | CORS origin (default: `http://localhost:5173`) |
+| `IBM_WATSONX_API_KEY` | Phase 4 AI | IBM watsonx API key for Granite AI |
+| `IBM_WATSONX_PROJECT_ID` | Phase 4 AI | IBM watsonx project ID |
+| `IBM_WATSONX_URL` | No | watsonx endpoint (default: `https://us-south.ml.cloud.ibm.com`) |
+| `IBM_GRANITE_MODEL` | No | Granite model ID (default: `ibm/granite-13b-chat-v2`) |
 
 ---
 
-## API Endpoints (Phase 1)
+## API Endpoints (Phase 4)
 
 ```
-POST   /api/auth/signup              Create account
-POST   /api/auth/login               Login
-POST   /api/auth/logout              Logout (clears cookie)
-GET    /api/auth/me                  Get current user
+# Auth
+POST   /api/auth/signup
+POST   /api/auth/login
+POST   /api/auth/logout
+GET    /api/auth/me
 
-GET    /api/users/profile            Get full profile + role profile
-PATCH  /api/users/profile            Update user fields
-PATCH  /api/users/profile/worker     Update worker profile
-PATCH  /api/users/profile/buyer      Update buyer profile
-POST   /api/users/profile/avatar     Upload avatar photo
-POST   /api/users/onboarding/complete Mark onboarding complete
-GET    /api/users/notifications      Get notifications
-PATCH  /api/users/notifications/:id/read  Mark read
+# Users / Profiles
+GET    /api/users/profile
+PATCH  /api/users/profile
+PATCH  /api/users/profile/worker
+PATCH  /api/users/profile/buyer
 
-GET    /api/admin/users              List all users (ADMIN only)
-PATCH  /api/admin/users/:id/deactivate
-PATCH  /api/admin/users/:id/activate
-GET    /api/admin/audit-logs
+# Marketplace
+GET    /api/marketplace/listings
+GET    /api/marketplace/inventory            (auth: AGARIYA_WORKER)
+POST   /api/marketplace/listings             (auth: AGARIYA_WORKER)
+GET    /api/marketplace/buyer-requests
 
-GET    /api/health                   Health check
+# Offers & Transactions
+GET    /api/offers/my                        (auth)
+POST   /api/offers                           (auth: BUYER)
+POST   /api/offers/:id/accept                (auth)
+POST   /api/offers/:id/counter               (auth)
+GET    /api/offers/transactions/my           (auth)
+
+# Phase 4 — AI Assistant
+POST   /api/ai/chat                          (optional auth)
+GET    /api/ai/status
+GET    /api/ai/conversations                 (auth)
+POST   /api/ai/conversations                 (auth)
+GET    /api/ai/conversations/:id/messages    (auth)
+PATCH  /api/ai/conversations/:id             (auth)
+DELETE /api/ai/conversations/:id             (auth)
+
+# Phase 4 — Healthcare / Safety / Welfare / Community
+GET    /api/healthcare/requests
+POST   /api/healthcare/requests
+GET    /api/healthcare/camps
+GET    /api/safety/readings
+POST   /api/safety/readings
+GET    /api/safety/incidents
+POST   /api/safety/incidents
+GET    /api/safety/alerts
+GET    /api/welfare/schemes
+POST   /api/welfare/match
+GET    /api/community/notices
+POST   /api/community/support
+
+# Phase 4 — Market & Analytics
+GET    /api/market/prices/latest
+GET    /api/market/trends
+POST   /api/market/compare
+GET    /api/analytics/summary
+GET    /api/analytics/safety
+GET    /api/analytics/healthcare
+
+# Notifications
+GET    /api/notifications/:userId
+GET    /api/notifications/:userId/unread
+PUT    /api/notifications/:id/read
+PUT    /api/notifications/user/:userId/read-all
+
+GET    /api/health
 ```
-
----
-
-## What Remains for Phase 2
-
-- Salt inventory management (add/edit/view salt stock)
-- Salt marketplace (create/browse/search listings)
-- Buyer requests (post buying needs)
-- Offer system (make/counter/accept/reject offers)
-- Transaction records
-- Market price tracking
-- Saved listings
-- Notification system for offers

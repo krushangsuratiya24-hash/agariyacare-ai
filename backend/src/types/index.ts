@@ -555,5 +555,27 @@ export interface WelfareMatch {
 
 export type SafetyLevel = 'SAFE' | 'CAUTION' | 'HIGH_RISK' | 'EMERGENCY';
 
+// ─── Price Comparison ─────────────────────────────────────────────────────────
+
+export interface PriceComparison {
+  quantity: number;
+  buyerOffer: number;
+  referencePrice: number;
+  offerValue: number;
+  referenceValue: number;
+  difference: number;
+  percentageDifference: number;
+  assessment: 'FAIR' | 'BELOW_MARKET' | 'ABOVE_MARKET';
+}
+
+// ─── Shared API Response ──────────────────────────────────────────────────────
+
+export interface ApiResponse<T = unknown> {
+  success: boolean;
+  data?: T;
+  error?: string;
+  message?: string;
+}
+
 // ─── Express augmentation ─────────────────────────────────────────────────────
 // Global type augmentation is handled in types/express.d.ts
