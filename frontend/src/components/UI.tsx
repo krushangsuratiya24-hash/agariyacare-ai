@@ -4,20 +4,23 @@ import { SafetyLevel } from '../types';
 
 // ─── Safety badge ─────────────────────────────────────────────────────────────
 
-export function SafetyBadge({ level }: { level: SafetyLevel }) {
-  const map: Record<SafetyLevel, string> = {
+export function SafetyBadge({ level }: { level?: string }) {
+  const map: Record<string, string> = {
+    SAFE: 'badge-normal',
     NORMAL: 'badge-normal',
     CAUTION: 'badge-caution',
     HIGH_RISK: 'badge-high',
     EMERGENCY: 'badge-emergency',
   };
-  const labels: Record<SafetyLevel, string> = {
+  const labels: Record<string, string> = {
+    SAFE: 'Safe',
     NORMAL: 'Normal',
     CAUTION: 'Caution',
     HIGH_RISK: 'High Risk',
     EMERGENCY: 'Emergency',
   };
-  return <span className={map[level]}>{labels[level]}</span>;
+  const l = level ?? 'NORMAL';
+  return <span className={map[l] ?? 'badge bg-gray-100 text-gray-700'}>{labels[l] ?? l}</span>;
 }
 
 // ─── Status badge ─────────────────────────────────────────────────────────────

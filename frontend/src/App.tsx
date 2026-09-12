@@ -43,6 +43,10 @@ import { PlaceholderPage } from './pages/shared/PlaceholderPage';
 // Phase 4 — AI Assistant
 import AIAssistantPage from './pages/AIAssistantPage';
 
+// Phase 5 — Healthcare & Safety
+import HealthcarePage from './pages/HealthcarePage';
+import SafetyPage from './pages/SafetyPage';
+
 // Smart router: worker sees WorkerOffersPage, buyer sees BuyerOffersPage
 const OffersRouter: React.FC = () => {
   const { user } = useAuthStore();
@@ -130,9 +134,10 @@ const App: React.FC = () => {
               <Route path="/transactions"       element={<TransactionsPage />} />
               <Route path="/transactions/:id"   element={<TransactionDetailPage />} />
 
-              {/* Phase 3 — Coming features */}
-              <Route path="/healthcare" element={<PlaceholderPage titleKey="nav.healthcare" phase={3} />} />
-              <Route path="/safety"     element={<PlaceholderPage titleKey="nav.safety"     phase={3} />} />
+              {/* Phase 5 — Healthcare & Safety (real implementations) */}
+              <Route path="/healthcare" element={<HealthcarePage />} />
+              <Route path="/safety"     element={<SafetyPage />} />
+              {/* Welfare & Community still coming */}
               <Route path="/welfare"    element={<PlaceholderPage titleKey="nav.welfare"    phase={3} />} />
               <Route path="/community"  element={<PlaceholderPage titleKey="nav.community"  phase={3} />} />
               <Route path="/support"    element={<PlaceholderPage titleKey="nav.support"    phase={3} />} />

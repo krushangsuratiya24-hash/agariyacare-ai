@@ -385,10 +385,15 @@ export const notificationsApi = {
 // ─── Healthcare API ───────────────────────────────────────────────────────────
 
 export const healthcareApi = {
+  // Worker: own requests only (auth enforced server-side)
   getRequests: async (workerId?: string) => {
     const res = await api.get<ApiResponse<any[]>>('/healthcare/requests', {
       params: workerId ? { workerId } : {},
     });
+    return res.data;
+  },
+  getRequest: async (id: string) => {
+    const res = await api.get<ApiResponse<any>>(`/healthcare/requests/${id}`);
     return res.data;
   },
   getCamps: async () => {
@@ -398,6 +403,30 @@ export const healthcareApi = {
   createRequest: async (data: any) => {
     const res = await api.post<ApiResponse<any>>('/healthcare/requests', data);
     return res.data;
+  },
+
+  // Coordinator endpoints
+  coordinator: {
+    getRequests: async (filters?: { workerId?: string; status?: string; severity?: string }) => {
+      const res = await api.get<ApiResponse<any[]>>('/healthcare/coordinator/requests', { params: filters });
+      return res.data;
+    },
+    updateRequest: async (id: string, data: any) => {
+      const res = await api.put<ApiResponse<any>>(`/healthcare/coordinator/requests/${id}`, data);
+      return res.data;
+    },
+    addNote: async (id: string, note: string) => {
+      const res = await api.post<ApiResponse<any>>(`/healthcare/coordinator/requests/${id}/notes`, { note });
+      return res.data;
+    },
+    getNotes: async (id: string) => {
+      const res = await api.get<ApiResponse<any[]>>(`/healthcare/coordinator/requests/${id}/notes`);
+      return res.data;
+    },
+    createCamp: async (data: any) => {
+      const res = await api.post<ApiResponse<any>>('/healthcare/camps', data);
+      return res.data;
+    },
   },
 };
 
@@ -417,6 +446,11 @@ export const welfareApi = {
 // ─── Safety API ───────────────────────────────────────────────────────────────
 
 export const safetyApi = {
+  // Worker endpoints
+  getAssessment: async () => {
+    const res = await api.get<ApiResponse<any>>('/safety/assessment');
+    return res.data;
+  },
   getReadings: async (workerId?: string) => {
     const res = await api.get<ApiResponse<any[]>>('/safety/readings', {
       params: workerId ? { workerId } : {},
@@ -440,6 +474,40 @@ export const safetyApi = {
   reportIncident: async (data: any) => {
     const res = await api.post<ApiResponse<any>>('/safety/incidents', data);
     return res.data;
+  },
+
+  // SOS / Emergency
+  activateSOS: async (data?: { location?: string; description?: string }) => {
+    const res = await api.post<ApiResponse<any>>('/safety/sos', data ?? {});
+    return res.data;
+  },
+  getMySOS: async () => {
+    const res = await api.get<ApiResponse<any[]>>('/safety/sos');
+    return res.data;
+  },
+
+  // Coordinator endpoints
+  coordinator: {
+    getIncidents: async (filters?: { workerId?: string; status?: string; severity?: string }) => {
+      const res = await api.get<ApiResponse<any[]>>('/safety/coordinator/incidents', { params: filters });
+      return res.data;
+    },
+    updateIncident: async (id: string, data: any) => {
+      const res = await api.put<ApiResponse<any>>(`/safety/coordinator/incidents/${id}`, data);
+      return res.data;
+    },
+    getSOS: async (status?: string) => {
+      const res = await api.get<ApiResponse<any[]>>('/safety/coordinator/sos', { params: status ? { status } : {} });
+      return res.data;
+    },
+    updateSOS: async (id: string, data: any) => {
+      const res = await api.put<ApiResponse<any>>(`/safety/coordinator/sos/${id}`, data);
+      return res.data;
+    },
+    createAlert: async (data: any) => {
+      const res = await api.post<ApiResponse<any>>('/safety/coordinator/alerts', data);
+      return res.data;
+    },
   },
 };
 
