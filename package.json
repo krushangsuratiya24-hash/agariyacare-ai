@@ -1,0 +1,15 @@
+{
+  "name": "agariyacare",
+  "version": "1.0.0",
+  "description": "**AI-powered Healthcare, Welfare, Safety & Fair-Market Platform for Agariya Salt Pan Workers**",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

@@ -1,0 +1,108 @@
+/** @type {import('tailwindcss').Config} */
+export default {
+  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
+  theme: {
+    extend: {
+      colors: {
+        // AgariyaCare Design System
+        eucalyptus: {
+          50:  '#f2f7f4',
+          100: '#e0ede5',
+          200: '#c2dbcc',
+          300: '#97c2a8',
+          400: '#67a380',
+          500: '#468563',
+          600: '#346b4e',
+          700: '#2b5640',
+          800: '#244535',
+          900: '#1e392d',
+          950: '#0f1f18',
+        },
+        ivory: {
+          50:  '#fdfcf8',
+          100: '#f9f6ef',
+          200: '#f3ede0',
+          300: '#e9dfcc',
+          400: '#d8c9a8',
+          500: '#c4b088',
+        },
+        sage: {
+          50:  '#f4f7f2',
+          100: '#e5ede1',
+          200: '#ccdac5',
+          300: '#a9c09f',
+          400: '#809f76',
+          500: '#62835a',
+          600: '#4d6947',
+        },
+        sand: {
+          50:  '#faf8f4',
+          100: '#f2ede1',
+          200: '#e5dcc6',
+          300: '#d4c5a0',
+          400: '#bfa878',
+          500: '#a98e5c',
+        },
+        charcoal: {
+          50:  '#f6f6f6',
+          100: '#e7e7e7',
+          200: '#d1d1d1',
+          300: '#b0b0b0',
+          400: '#888888',
+          500: '#6d6d6d',
+          600: '#5d5d5d',
+          700: '#4f4f4f',
+          800: '#454545',
+          900: '#3d3d3d',
+          950: '#262626',
+        },
+      },
+      fontFamily: {
+        sans: [
+          '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto',
+          '"Helvetica Neue"', 'Arial', 'sans-serif',
+        ],
+      },
+      fontSize: {
+        'xs':   ['0.75rem',  { lineHeight: '1.5' }],
+        'sm':   ['0.875rem', { lineHeight: '1.6' }],
+        'base': ['1rem',     { lineHeight: '1.6' }],
+        'lg':   ['1.125rem', { lineHeight: '1.6' }],
+        'xl':   ['1.25rem',  { lineHeight: '1.5' }],
+        '2xl':  ['1.5rem',   { lineHeight: '1.4' }],
+        '3xl':  ['1.875rem', { lineHeight: '1.3' }],
+        '4xl':  ['2.25rem',  { lineHeight: '1.2' }],
+      },
+      spacing: {
+        '18': '4.5rem',
+        '22': '5.5rem',
+        '72': '18rem',
+        '80': '20rem',
+        '96': '24rem',
+      },
+      borderRadius: {
+        'xl':  '0.75rem',
+        '2xl': '1rem',
+        '3xl': '1.5rem',
+      },
+      boxShadow: {
+        'soft':  '0 1px 3px 0 rgba(0,0,0,0.06), 0 1px 2px -1px rgba(0,0,0,0.04)',
+        'card':  '0 2px 8px -1px rgba(0,0,0,0.08), 0 1px 4px -1px rgba(0,0,0,0.04)',
+        'float': '0 4px 16px -2px rgba(0,0,0,0.10), 0 2px 8px -2px rgba(0,0,0,0.06)',
+      },
+      animation: {
+        'fade-in':    'fadeIn 0.2s ease-out',
+        'slide-up':   'slideUp 0.2s ease-out',
+        'slide-down': 'slideDown 0.2s ease-out',
+        'pulse-soft': 'pulseSoft 2s ease-in-out infinite',
+      },
+      keyframes: {
+        fadeIn:    { from: { opacity: '0' }, to: { opacity: '1' } },
+        slideUp:   { from: { opacity: '0', transform: 'translateY(8px)' }, to: { opacity: '1', transform: 'translateY(0)' } },
+        slideDown: { from: { opacity: '0', transform: 'translateY(-8px)' }, to: { opacity: '1', transform: 'translateY(0)' } },
+        pulseSoft: { '0%, 100%': { opacity: '1' }, '50%': { opacity: '0.5' } },
+      },
+    },
+  },
+  plugins: [],
+};

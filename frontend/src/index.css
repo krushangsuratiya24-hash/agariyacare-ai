@@ -1,0 +1,178 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --color-bg:       #f9f6ef;
+    --color-surface:  #ffffff;
+    --color-border:   #e9dfcc;
+    --color-primary:  #346b4e;
+    --color-text:     #262626;
+    --color-muted:    #6d6d6d;
+    --sidebar-width:  240px;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+                 'Helvetica Neue', Arial, 'Noto Sans Gujarati', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    line-height: 1.6;
+    margin: 0;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-weight: 600;
+    line-height: 1.3;
+    color: var(--color-text);
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  button {
+    cursor: pointer;
+  }
+
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* Gujarati script support */
+  :lang(gu) {
+    font-family: 'Noto Sans Gujarati', -apple-system, sans-serif;
+    line-height: 1.8;
+  }
+}
+
+@layer components {
+  /* ── Card ───────────────────────────────────────── */
+  .card {
+    @apply bg-white rounded-2xl border border-ivory-200 shadow-soft;
+  }
+
+  .card-body {
+    @apply p-5 sm:p-6;
+  }
+
+  /* ── Button ─────────────────────────────────────── */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl font-medium
+           transition-all duration-150 focus-visible:outline-none
+           focus-visible:ring-2 focus-visible:ring-eucalyptus-400
+           focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none;
+  }
+
+  .btn-primary {
+    @apply btn bg-eucalyptus-700 text-white hover:bg-eucalyptus-800
+           active:bg-eucalyptus-900 shadow-soft;
+  }
+
+  .btn-secondary {
+    @apply btn bg-ivory-100 text-charcoal-800 border border-ivory-300
+           hover:bg-ivory-200 active:bg-ivory-300;
+  }
+
+  .btn-ghost {
+    @apply btn text-charcoal-700 hover:bg-ivory-100 active:bg-ivory-200;
+  }
+
+  .btn-danger {
+    @apply btn bg-red-50 text-red-700 border border-red-200
+           hover:bg-red-100;
+  }
+
+  .btn-sm  { @apply px-3 py-1.5 text-sm; }
+  .btn-md  { @apply px-4 py-2.5 text-sm; }
+  .btn-lg  { @apply px-6 py-3 text-base; }
+
+  /* ── Input ──────────────────────────────────────── */
+  .input {
+    @apply w-full rounded-xl border border-ivory-300 bg-white px-4 py-2.5 text-sm
+           text-charcoal-900 placeholder-charcoal-400
+           transition-all duration-150
+           focus:outline-none focus:ring-2 focus:ring-eucalyptus-400
+           focus:border-eucalyptus-500;
+  }
+
+  .input-error {
+    @apply border-red-300 focus:ring-red-300 focus:border-red-400;
+  }
+
+  .label {
+    @apply block text-sm font-medium text-charcoal-700 mb-1.5;
+  }
+
+  /* ── Badge ──────────────────────────────────────── */
+  .badge {
+    @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium;
+  }
+
+  .badge-green  { @apply badge bg-eucalyptus-100 text-eucalyptus-800; }
+  .badge-sand   { @apply badge bg-sand-100 text-sand-500; }
+  .badge-sage   { @apply badge bg-sage-100 text-sage-700; }
+  .badge-gray   { @apply badge bg-charcoal-100 text-charcoal-600; }
+  .badge-red    { @apply badge bg-red-50 text-red-700; }
+
+  /* ── Sidebar nav item ───────────────────────────── */
+  .nav-item {
+    @apply flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium
+           text-charcoal-600 transition-all duration-150
+           hover:bg-ivory-100 hover:text-charcoal-900;
+  }
+
+  .nav-item-active {
+    @apply nav-item bg-eucalyptus-50 text-eucalyptus-800 font-semibold;
+  }
+
+  /* ── Skeleton ───────────────────────────────────── */
+  .skeleton {
+    @apply animate-pulse bg-ivory-200 rounded-lg;
+  }
+
+  /* ── Section header ─────────────────────────────── */
+  .section-title {
+    @apply text-lg font-semibold text-charcoal-900;
+  }
+
+  .section-subtitle {
+    @apply text-sm text-charcoal-500 mt-0.5;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: #e9dfcc transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: #e9dfcc;
+    border-radius: 3px;
+  }
+}

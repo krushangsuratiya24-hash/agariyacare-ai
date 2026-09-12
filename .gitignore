@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.env
+*.log
+uploads/avatars/*.jpg
+uploads/avatars/*.png
+uploads/avatars/*.webp
+.DS_Store
